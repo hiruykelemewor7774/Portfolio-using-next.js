@@ -20,7 +20,8 @@ function AdminNav() {
 
 export default async function AdminPage() {
   const session = await auth.api.getSession({ headers: await headers() })
-  if (!session?.user) redirect("/sign-in")
+  const adminEmail = process.env.ADMIN_EMAIL?.trim().toLowerCase()
+  if (!session?.user || !adminEmail || session.user.email.toLowerCase() !== adminEmail) redirect("/sign-in")
   const projects = await listProjects()
 
   return (

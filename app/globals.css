@@ -33,6 +33,70 @@ body {
     background 0.35s,
     color 0.35s;
 }
+.offline-tools {
+  position: fixed;
+  right: 18px;
+  bottom: 18px;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.offline-status,
+.install-app {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 38px;
+  padding: 0 12px;
+  border: 1px solid var(--line);
+  background: var(--ink);
+  color: #f2f4ed;
+  font: 10px monospace;
+}
+.offline-status {
+  border-color: var(--orange);
+}
+.offline-status svg,
+.install-app svg {
+  width: 14px;
+  height: 14px;
+  flex: 0 0 auto;
+}
+.install-app {
+  border-color: var(--lime);
+  background: var(--lime);
+  color: var(--ink);
+  cursor: pointer;
+}
+.light-mode .offline-status,
+.light-mode .install-app {
+  color: var(--ink);
+}
+.light-mode .offline-status {
+  background: var(--paper);
+}
+.hero-copy > * {
+  animation: hero-enter 0.7s both;
+}
+.hero-copy > :nth-child(1) {
+  animation-delay: 0.08s;
+}
+.hero-copy > :nth-child(2) {
+  animation-delay: 0.16s;
+}
+.hero-copy > :nth-child(3) {
+  animation-delay: 0.24s;
+}
+.hero-copy > :nth-child(4) {
+  animation-delay: 0.32s;
+}
+.hero-copy > :nth-child(5) {
+  animation-delay: 0.4s;
+}
+.hero-aside {
+  animation: hero-enter 0.85s 0.25s both;
+}
 .site-shell.light-mode {
   background: var(--paper);
   color: var(--ink);
@@ -161,6 +225,7 @@ body {
   background: var(--lime);
   box-shadow: 0 0 14px var(--lime);
   border-radius: 50%;
+  animation: status-pulse 2.4s ease-in-out infinite;
 }
 .eyebrow-line {
   width: 48px;
@@ -254,6 +319,7 @@ h2 em {
   transform: rotate(-8deg);
   z-index: 3;
   background: #252b22;
+  animation: portrait-float 5s ease-in-out 1s infinite;
 }
 .portrait-frame img {
   width: 100%;
@@ -280,6 +346,7 @@ h2 em {
   box-shadow: 22px 24px 0 rgba(200, 241, 105, 0.06);
   transform: rotate(3deg);
   z-index: 2;
+  animation: terminal-float 6s ease-in-out 1s infinite;
 }
 .terminal-top {
   height: 37px;
@@ -327,11 +394,13 @@ h2 em {
   width: 390px;
   height: 175px;
   transform: rotate(-25deg);
+  animation: orbit-one-turn 36s linear infinite;
 }
 .orbit-two {
   width: 350px;
   height: 140px;
   transform: rotate(32deg);
+  animation: orbit-two-turn 42s linear infinite;
 }
 .hero-index {
   position: absolute;
@@ -358,6 +427,7 @@ h2 em {
   font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.19em;
+  animation: ticker-drift 18s ease-in-out infinite alternate;
 }
 .ticker-star {
   font-size: 15px;
@@ -494,6 +564,19 @@ h2 {
     transform 0.25s,
     border-color 0.25s;
 }
+.project-visual svg {
+  transition: transform 0.35s ease;
+}
+.project-card:hover .project-visual svg {
+  transform: translateY(-4px) scale(1.08);
+}
+.visual-lines {
+  transition: transform 0.55s ease, opacity 0.35s ease;
+}
+.project-card:hover .visual-lines {
+  opacity: 0.28;
+  transform: translateY(-8px);
+}
 .light-mode .project-card {
   background: #e7ebe1;
 }
@@ -606,6 +689,12 @@ h2 {
   margin-bottom: 42px;
   color: var(--lime);
   border: 1px solid var(--line);
+  transition: color 0.25s, background-color 0.25s, transform 0.25s;
+}
+.service-grid > div:hover .service-icon {
+  color: var(--ink);
+  background: var(--lime);
+  transform: translateY(-4px) rotate(-4deg);
 }
 .service-icon svg {
   width: 17px;
@@ -728,6 +817,18 @@ h2 {
   border: 1px solid var(--lime);
   box-shadow: 0 24px 80px rgba(0, 0, 0, 0.35);
 }
+.light-mode .contact-modal {
+  background: #f3f5ee;
+  color: #10120f;
+}
+.dark-mode .contact-modal {
+  background: #171b16;
+  color: #f2f4ed;
+}
+.dark-mode .contact-modal > p,
+.dark-mode .contact-form label {
+  color: #a5ad9e;
+}
 .contact-modal h2 {
   margin-top: 14px;
   font-size: clamp(30px, 6vw, 48px);
@@ -791,6 +892,24 @@ h2 {
   -webkit-box-shadow: 0 0 0 1000px #fff inset;
   caret-color: #10120f;
 }
+.dark-mode .contact-form input,
+.dark-mode .contact-form textarea {
+  border-color: rgba(200, 241, 105, 0.22);
+  background: #10120f;
+  color: #f2f4ed;
+}
+.dark-mode .contact-form input:focus,
+.dark-mode .contact-form textarea:focus {
+  border-color: var(--lime);
+  box-shadow: 0 0 0 3px rgba(200, 241, 105, 0.18);
+}
+.dark-mode .contact-form input:-webkit-autofill,
+.dark-mode .contact-form input:-webkit-autofill:hover,
+.dark-mode .contact-form input:-webkit-autofill:focus {
+  -webkit-text-fill-color: #f2f4ed;
+  -webkit-box-shadow: 0 0 0 1000px #10120f inset;
+  caret-color: #f2f4ed;
+}
 .contact-form .button {
   align-self: flex-start;
   border: 0;
@@ -804,6 +923,7 @@ h2 {
   color: #c85a5a;
   font-size: 12px;
 }
+
 .contact-success {
   display: flex;
   flex-direction: column;
@@ -820,6 +940,9 @@ h2 {
 .contact-success strong {
   color: var(--ink);
   font-size: 18px;
+}
+.dark-mode .contact-success strong {
+  color: #f2f4ed;
 }
 .site-footer {
   display: flex;
@@ -855,6 +978,46 @@ h2 {
 @keyframes blink {
   50% {
     opacity: 0;
+  }
+}
+@keyframes hero-enter {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes status-pulse {
+  50% {
+    box-shadow: 0 0 20px 3px rgba(200, 241, 105, 0.42);
+  }
+}
+@keyframes terminal-float {
+  50% {
+    transform: translateY(-7px) rotate(3deg);
+  }
+}
+@keyframes portrait-float {
+  50% {
+    transform: translateY(7px) rotate(-8deg);
+  }
+}
+@keyframes orbit-one-turn {
+  to {
+    transform: rotate(335deg);
+  }
+}
+@keyframes orbit-two-turn {
+  to {
+    transform: rotate(392deg);
+  }
+}
+@keyframes ticker-drift {
+  to {
+    transform: translateX(12px);
   }
 }
 @media (max-width: 900px) {
@@ -948,6 +1111,10 @@ h2 {
 }
 
 @media (max-width: 760px) {
+  .offline-tools {
+    right: 12px;
+    bottom: 12px;
+  }
   .section-wrap,
   .site-header {
     width: min(100% - 36px, 600px);

@@ -8,6 +8,6 @@ export const auth = betterAuth({
   database: new Pool({ connectionString: process.env.DATABASE_URL }),
   baseURL: origin(process.env.BETTER_AUTH_URL || process.env.VERCEL_PROJECT_PRODUCTION_URL || process.env.VERCEL_URL || process.env.V0_RUNTIME_URL),
   trustedOrigins,
-  emailAndPassword: { enabled: true },
+  emailAndPassword: { enabled: true, disableSignUp: process.env.NODE_ENV === "production" },
   advanced: process.env.NODE_ENV === "development" ? { defaultCookieAttributes: { sameSite: "none", secure: true } } : undefined,
 })

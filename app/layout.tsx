@@ -1,11 +1,13 @@
 import { Analytics } from '@vercel/analytics/next'
 import type { Metadata, Viewport } from 'next'
+import { OfflineStatus } from './offline-status'
 import './globals.css'
 
 export const metadata: Metadata = {
   title: 'Alemu Kelemework — Developer Portfolio',
   description: 'Portfolio of Alemu Kelemework, a full-stack developer and Computer Science student building thoughtful digital experiences.',
   generator: 'v0.app',
+  manifest: '/manifest.webmanifest',
   icons: {
     icon: [
       {
@@ -42,6 +44,7 @@ export default function RootLayout({
     <html lang="en">
       <body className="antialiased">
         {children}
+        <OfflineStatus />
         {process.env.NODE_ENV === 'production' && <Analytics />}
       </body>
     </html>
