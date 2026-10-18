@@ -1,6 +1,15 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import {
+  certificates as fallbackCertificates,
+  educationEntries as fallbackEducationEntries,
+  experiences as fallbackExperiences,
+  process as portfolioProcess,
+  projects as portfolioProjects,
+  roles as portfolioRoles,
+  skills as portfolioSkills,
+} from "@/lib/content";
 import { submitContact } from "./actions/contact";
 import {
   ArrowDown,
@@ -8,117 +17,64 @@ import {
   Check,
   Code2,
   Database,
+  GraduationCap,
   Globe2,
+  HardHat,
   Layers3,
   Mail,
+  MapPin,
   Menu,
   Moon,
   MoveUpRight,
   Send,
   Sparkles,
+  Star,
   Sun,
+  Smartphone,
   Terminal,
   X,
+  Zap,
 } from "lucide-react";
 
-const roles = [
-  "Full-Stack Developer",
-  "Software Engineering Intern",
-  "Product-minded Builder",
-];
+const roles = [...portfolioRoles];
+const projects = [...portfolioProjects];
+const skills = [...portfolioSkills];
+const process = [...portfolioProcess];
+const experiences = [...fallbackExperiences];
+const educationEntries = [...fallbackEducationEntries];
+const certificates = [...fallbackCertificates];
+const projectIconMap = {
+  Layers3,
+  Database,
+  HardHat,
+  Smartphone,
+} as const;
 
-const projects = [
-  {
-    number: "01",
-    type: "Operations platform",
-    title: "Task Management System",
-    description:
-      "A calm, structured workspace for teams to plan, assign, and ship work with clarity.",
-    result: "Clearer ownership across every task",
-    stack: ["Next.js", "NestJS", "Swagger"],
-    accent: "lime",
-    icon: Layers3,
-  },
-  {
-    number: "02",
-    type: "Business software",
-    title: "Restaurant Management",
-    description:
-      "A streamlined operations platform connecting menus, orders, staff, and daily decisions.",
-    result: "One view for the whole operation",
-    stack: ["Next.js", "TypeScript", "PostgreSQL"],
-    accent: "blue",
-    icon: Database,
-  },
-  {
-    number: "03",
-    type: "Field operations",
-    title: "Construction Management",
-    description:
-      "Connected project tools for managing sites, resources, reports, and progress from one place.",
-    result: "Less friction between site and office",
-    stack: ["Next.js", "NestJS", "Better Auth", "Docker"],
-    accent: "orange",
-    icon: Code2,
-  },
-  {
-    number: "04",
-    type: "Digital experience",
-    title: "Qine Bet Website",
-    description:
-      "A responsive, high-energy web experience built for fast, intuitive interaction across devices.",
-    result: "A sharper, faster brand presence",
-    stack: ["Next.js", "Tailwind CSS"],
-    accent: "purple",
-    icon: Globe2,
-  },
-];
-
-const skills = [
-  "HTML",
-  "CSS",
-  "JavaScript",
-  "TypeScript",
-  "React",
-  "Next.js",
-  "NestJS",
-  "Swagger",
-  "Better Auth",
-  "Docker",
-  "Prisma",
-  "PostgreSQL",
-  "Git",
-  "Tailwind CSS",
-];
-
-const process = [
-  [
-    "01",
-    "Discover",
-    "Understand the problem, audience, constraints, and the signal that defines success.",
-  ],
-  [
-    "02",
-    "Shape",
-    "Turn complexity into a clear product direction, useful flows, and a visual language.",
-  ],
-  [
-    "03",
-    "Build",
-    "Engineer the experience with maintainable code, thoughtful states, and real data.",
-  ],
-  [
-    "04",
-    "Refine",
-    "Test the details, remove friction, and ship something that feels finished.",
-  ],
-];
+type ProjectIconName = keyof typeof projectIconMap;
+type PortfolioProject = {
+  id?: number | string;
+  number?: string;
+  title: string;
+  description: string;
+  result?: string;
+  stack: string[];
+  type?: string;
+  cover?: string;
+  coverAlt?: string;
+  accent?: string;
+  icon?: ProjectIconName | React.ComponentType<{ className?: string }>;
+};
 
 export default function Page() {
   const [dark, setDark] = useState(true);
   const [menuOpen, setMenuOpen] = useState(false);
   const [roleIndex, setRoleIndex] = useState(0);
   const [contactOpen, setContactOpen] = useState(false);
+  const [projectItems, setProjectItems] = useState<PortfolioProject[]>(projects as PortfolioProject[]);
+  const [skillItems, setSkillItems] = useState(skills);
+  const [experienceItems, setExperienceItems] = useState(experiences);
+  const [educationItems, setEducationItems] = useState(educationEntries);
+  const [certificateItems, setCertificateItems] = useState(certificates);
   const [contactStatus, setContactStatus] = useState<
     "idle" | "sending" | "success" | "error" | "partial"
   >("idle");
@@ -159,6 +115,57 @@ export default function Page() {
       2800,
     );
     return () => window.clearInterval(timer);
+  }, []);
+
+  useEffect(() => {
+    async function loadPortfolioContent() {
+      try {
+        const response = await fetch("/api/content");
+        if (!response.ok) return;
+        const data = await response.json();
+
+        if (Array.isArray(data.projects) && data.projects.length > 0) {
+          setProjectItems(
+            data.projects.map((project: any, index: number) => ({
+              ...project,
+              number: String(project.number ?? project.id ?? index + 1).padStart(2, "0"),
+              type: project.type ?? "Portfolio project",
+              cover: project.cover ?? "/project-dashboard.jpg",
+              coverAlt: project.coverAlt ?? `${project.title ?? "Project"} preview`,
+              result: project.result ?? project.description ?? "Project delivered",
+              stack: Array.isArray(project.stack)
+                ? project.stack
+                : String(project.tech ?? "")
+                    .split(",")
+                    .map((tag: string) => tag.trim())
+                    .filter(Boolean),
+              accent: project.accent ?? ["emerald", "blue", "amber", "violet"][index % 4],
+              icon: project.icon ?? ["Layers3", "Database", "HardHat", "Smartphone"][index % 4],
+            })),
+          );
+        }
+        if (Array.isArray(data.skills) && data.skills.length > 0) {
+          setSkillItems(
+            data.skills.map((skill: any) =>
+              typeof skill === "string" ? skill : skill.name,
+            ),
+          );
+        }
+        if (Array.isArray(data.experiences) && data.experiences.length > 0) {
+          setExperienceItems(data.experiences);
+        }
+        if (Array.isArray(data.education) && data.education.length > 0) {
+          setEducationItems(data.education);
+        }
+        if (Array.isArray(data.certifications) && data.certifications.length > 0) {
+          setCertificateItems(data.certifications);
+        }
+      } catch {
+        // Keep the built-in fallback content when the API is unavailable.
+      }
+    }
+
+    void loadPortfolioContent();
   }, []);
 
   function openContact(
@@ -235,45 +242,74 @@ export default function Page() {
       <section className="hero section-wrap" id="top">
         <div className="hero-copy">
           <div className="eyebrow">
-            <span className="status-dot" /> Available for opportunities{" "}
+            <span className="status-dot" /> Full-Stack Developer{" "}
             <span className="eyebrow-line" />
+            <span className="hero-techline">Next.js · NestJS · Prisma · PostgreSQL</span>
           </div>
           <h1>
-            Software with
+            Hi, I&apos;m
             <br />
-            <em>clarity</em> and
+            Alemu
             <br />
-            character<span className="accent">.</span>
+            <em>Kelemework</em>
           </h1>
           <p className="hero-intro">
-            I&apos;m Alemu, a full-stack developer and Computer Science student
-            crafting useful, thoughtful products from Addis Ababa, Ethiopia.
+            I build modern web applications and solve real-world problems.
+            <span>
+              I&apos;m a fourth-year Computer Science student at Mizan-Tepi
+              University and a Software Engineering Intern at Ethio Telecom.
+            </span>
           </p>
           <div className="hero-actions">
             <a className="button button-primary" href="#work">
-              Explore my work <ArrowDown />
+              <Send /> View my projects <ArrowUpRight />
             </a>
             <a
               className="button button-ghost"
-              href="#contact"
-              onClick={openContact}
+              href="/alemu-kelemework-cv.pdf"
+              download
+              aria-label="Download CV"
             >
-              Get in touch <ArrowUpRight />
+              Download CV <ArrowDown />
             </a>
           </div>
-          <div className="hero-proof">
-            <span>Currently</span>
-            <strong>Building at Ethio Telecom</strong>
-            <span className="proof-line" />
-            <span>Based in Addis Ababa</span>
+          <div className="hero-socials" aria-label="Social links">
+            <a href="https://github.com/hiruykelemewor7774" target="_blank" rel="noreferrer" aria-label="GitHub">
+              <Code2 />
+            </a>
+            <a href="https://www.linkedin.com/in/alemu-kelemework/" target="_blank" rel="noreferrer" aria-label="LinkedIn">
+              <Globe2 />
+            </a>
+            <a href="mailto:alemukelemework363@gmail.com" aria-label="Email">
+              <Mail />
+            </a>
+            <a href="#contact" onClick={openContact} aria-label="Send a message">
+              <Send />
+            </a>
           </div>
         </div>
         <div className="hero-aside">
+          <div className="portrait-halo" />
           <div className="portrait-frame">
             <img src="/alemu-portrait.png" alt="Portrait of Alemu Kelemework" />
           </div>
+          <div className="hero-signature" aria-hidden="true">
+            Alemu <span>Kelemework</span>
+          </div>
           <div className="orbit orbit-one" />
           <div className="orbit orbit-two" />
+          <div className="hero-callout clean-callout">
+            <Code2 />
+            <span><strong>Clean Code</strong><small>Best Practices</small></span>
+          </div>
+          <div className="hero-callout solve-callout">
+            <Sparkles />
+            <span><strong>Problem Solver</strong><small>Think &amp; Build</small></span>
+          </div>
+          <div className="hero-callout learn-callout">
+            <Zap />
+            <span><strong>Fast Learner</strong><small>Always Improving</small></span>
+          </div>
           <div className="hero-terminal">
             <div className="terminal-top">
               <span />
@@ -283,29 +319,30 @@ export default function Page() {
             </div>
             <div className="terminal-body">
               <p>
-                <span className="terminal-muted">const</span> developer = {"{"}
+                <span className="terminal-muted">const</span>{" "}
+                <span className="terminal-variable">developer</span> = {"{"}
               </p>
               <p className="indent">
-                name:{" "}
+                <span className="terminal-key">name</span>: {" "}
                 <span className="terminal-string">&quot;Alemu K.&quot;</span>,
               </p>
               <p className="indent">
-                role:{" "}
-                <span className="terminal-string">
+                <span className="terminal-key">role</span>: {" "}
+                <span className="terminal-string terminal-role">
                   &quot;{roles[roleIndex]}&quot;
                 </span>
                 ,
               </p>
               <p className="indent">
-                focus:{" "}
-                <span className="terminal-string">
+                <span className="terminal-key">focus</span>: {" "}
+                <span className="terminal-string terminal-focus">
                   &quot;great products&quot;
                 </span>
                 ,
               </p>
               <p className="indent">
-                status:{" "}
-                <span className="terminal-string">
+                <span className="terminal-key">status</span>: {" "}
+                <span className="terminal-string terminal-status">
                   &quot;open to build&quot;
                 </span>
                 ,
@@ -314,11 +351,29 @@ export default function Page() {
               <p className="terminal-cursor">_</p>
             </div>
           </div>
+          <div className="hero-stack" aria-label="Core technologies">
+            {["Next.js", "NestJS", "Prisma", "PostgreSQL"].map((skill, index) => (
+              <span key={skill}>
+                <i data-tech={skill.toLowerCase().replace(".", "")}>{["N", "N", "◇", "▤"][index]}</i>{skill}
+              </span>
+            ))}
+          </div>
           <div className="hero-index">
             01 <span>/</span> 04
           </div>
         </div>
       </section>
+
+      <div className="hero-stats section-wrap" aria-label="Portfolio highlights">
+        <div><GraduationCap /><strong>10+</strong><span>Projects completed</span></div>
+        <div><Code2 /><strong>4+</strong><span>Years learning</span></div>
+        <div><MapPin /><strong>Addis Ababa</strong><span>Based in Ethiopia</span></div>
+        <div><Star /><strong>{skills.length}+</strong><span>Technologies used</span></div>
+      </div>
+      <a className="scroll-cue" href="#about" aria-label="Scroll down to About me">
+        <span>Scroll Down</span>
+        <ArrowDown />
+      </a>
 
       <div className="ticker">
         <div className="ticker-track">
@@ -402,32 +457,18 @@ export default function Page() {
             <p>Growing through real problems, real teams, and real users.</p>
           </div>
           <div className="timeline">
-            <div className="timeline-item">
-              <div className="timeline-date">2024 — NOW</div>
-              <div>
-                <h3>
-                  Software Engineering Intern <span>@ Ethio Telecom</span>
-                </h3>
-                <p>
-                  Building internal tools and learning how reliable software
-                  supports a large, connected organization.
-                </p>
+            {experienceItems.map((item) => (
+              <div className="timeline-item" key={`${item.period}-${item.organization}`}>
+                <div className="timeline-date">{item.period}</div>
+                <div>
+                  <h3>
+                    {item.role} <span>@ {item.organization}</span>
+                  </h3>
+                  <p>{item.description}</p>
+                </div>
+                <MoveUpRight />
               </div>
-              <MoveUpRight />
-            </div>
-            <div className="timeline-item">
-              <div className="timeline-date">2022 — NOW</div>
-              <div>
-                <h3>
-                  Computer Science Student <span>@ Mizan-Tepi University</span>
-                </h3>
-                <p>
-                  Studying the foundations behind the interfaces, systems, and
-                  products I build every day.
-                </p>
-              </div>
-              <MoveUpRight />
-            </div>
+            ))}
           </div>
         </div>
       </section>
@@ -445,34 +486,42 @@ export default function Page() {
             <p>Selected work where technology meets intention.</p>
           </div>
           <div className="project-grid">
-            {projects.map((project) => {
-              const Icon = project.icon;
+            {projectItems.map((project) => {
+              const resolvedIcon =
+                typeof project.icon === "string"
+                  ? projectIconMap[project.icon as ProjectIconName] ?? Layers3
+                  : project.icon ?? Layers3;
+              const Icon = resolvedIcon;
               return (
                 <article
                   className={`project-card ${project.accent}`}
-                  key={project.number}
+                  key={project.id ?? project.number}
                 >
-                  <div className="project-top">
-                    <span className="project-number">
+                  <div className="project-visual">
+                    <img src={project.cover} alt={project.coverAlt} loading="lazy" />
+                    <span className="project-category">
                       {project.number} / {project.type}
                     </span>
-                    <ArrowUpRight className="project-arrow" />
+                    <span className="project-external" aria-hidden="true">
+                      <ArrowUpRight />
+                    </span>
                   </div>
-                  <div className="project-visual">
-                    <div className="visual-lines" />
-                    <Icon />
-                  </div>
-                  <div className="project-copy">
+                  <div className="project-details">
+                    <span className="project-icon">
+                      <Icon />
+                    </span>
+                    <div className="project-copy">
                     <h3>{project.title}</h3>
                     <p>{project.description}</p>
                     <span className="project-result">
-                      <Sparkles /> {project.result}
+                      <Check /> {project.result}
                     </span>
-                  </div>
-                  <div className="tag-list">
-                    {project.stack.map((tag) => (
-                      <span key={tag}>{tag}</span>
-                    ))}
+                    <div className="tag-list">
+                      {project.stack.map((tag) => (
+                        <span key={tag}>{tag}</span>
+                      ))}
+                    </div>
+                    </div>
                   </div>
                 </article>
               );
@@ -574,7 +623,7 @@ export default function Page() {
             <p>Tools I use to turn ideas into reliable products.</p>
           </div>
           <div className="skill-cloud">
-            {skills.map((skill, index) => (
+            {skillItems.map((skill, index) => (
               <span
                 className={
                   index === 4 || index === 7
@@ -605,25 +654,17 @@ export default function Page() {
             </h2>
             <p>Foundations that keep my practice curious and rigorous.</p>
           </div>
-          <div className="education-card">
-            <div>
-              <span className="card-kicker">2022 — PRESENT</span>
-              <h3>BSc. Computer Science</h3>
-              <p>Mizan-Tepi University · Ethiopia</p>
+          {educationItems.map((item) => (
+            <div className="education-card" key={`${item.period}-${item.degree}`}>
+              <div>
+                <span className="card-kicker">{item.period}</span>
+                <h3>{item.degree}</h3>
+                <p>{item.institution}</p>
+                {item.details && <p style={{ marginTop: 8 }}>{item.details}</p>}
+              </div>
+              <span className="education-badge">{item.status}</span>
             </div>
-            <span className="education-badge">In progress</span>
-          </div>
-          <div className="education-card">
-            <div>
-              <span className="card-kicker">CONTINUOUS PRACTICE</span>
-              <h3>Engineering through building</h3>
-              <p>
-                Product architecture, backend systems, accessible interfaces,
-                and deployment workflows.
-              </p>
-            </div>
-            <span className="education-badge">Ongoing</span>
-          </div>
+          ))}
         </div>
       </section>
 
@@ -647,26 +688,16 @@ export default function Page() {
             </p>
           </div>
           <div className="credential-grid">
-            <article>
-              <span className="credential-mark">01</span>
-              <h3>Full-stack systems</h3>
-              <p>From data models and APIs to production-ready interfaces.</p>
-            </article>
-            <article>
-              <span className="credential-mark">02</span>
-              <h3>Product thinking</h3>
-              <p>
-                Making technical decisions serve real people and clear outcomes.
-              </p>
-            </article>
-            <article>
-              <span className="credential-mark">03</span>
-              <h3>Reliable delivery</h3>
-              <p>
-                Auth, testing, documentation, and deployment are part of the
-                craft.
-              </p>
-            </article>
+            {certificateItems.map((item, index) => (
+              <article key={`${item.title}-${index}`}>
+                <span className="credential-mark">{String(index + 1).padStart(2, "0")}</span>
+                <h3>{item.title}</h3>
+                <p>
+                  {item.issuer}
+                  {item.date ? ` · ${item.date}` : ""}
+                </p>
+              </article>
+            ))}
           </div>
         </div>
       </section>
