@@ -3,7 +3,13 @@
 import { FormEvent, useState } from "react"
 import { authClient } from "@/lib/auth-client"
 
-export function AuthForm({ mode }: { mode: "sign-in" | "sign-up" }) {
+export function AuthForm({
+  mode,
+  accessMessage,
+}: {
+  mode: "sign-in" | "sign-up"
+  accessMessage?: string
+}) {
   const [error, setError] = useState("")
   const [pending, setPending] = useState(false)
   const [accountCreated, setAccountCreated] = useState(false)
@@ -65,6 +71,11 @@ export function AuthForm({ mode }: { mode: "sign-in" | "sign-up" }) {
       <h1 className="mt-3 text-3xl font-semibold">
         {mode === "sign-in" ? "Welcome back" : "Create admin account"}
       </h1>
+      {accessMessage && (
+        <p role="alert" className="mt-4 text-sm text-destructive">
+          {accessMessage}
+        </p>
+      )}
       <div className="mt-8 grid gap-4">
         {mode === "sign-up" && (
           <input name="name" required placeholder="Name" className="rounded-lg border px-4 py-3" />
@@ -76,6 +87,15 @@ export function AuthForm({ mode }: { mode: "sign-in" | "sign-up" }) {
         </button>
         {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
       </div>
+      <p className="mt-5 text-sm text-muted-foreground">
+        {mode === "sign-in" ? "Need to create your admin account? " : "Already have an account? "}
+        <a
+          href={mode === "sign-in" ? "/sign-up" : "/sign-in"}
+          className="font-medium text-foreground underline underline-offset-4"
+        >
+          {mode === "sign-in" ? "Create account" : "Sign in"}
+        </a>
+      </p>
     </form>
   )
 }
