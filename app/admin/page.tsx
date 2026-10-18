@@ -2,16 +2,36 @@ import { redirect } from "next/navigation"
 import { headers } from "next/headers"
 import { auth } from "@/lib/auth"
 import { listProjects } from "@/app/actions/projects"
+import {
+  listCertifications,
+  listContactSubmissions,
+  listEducation,
+  listExperiences,
+  listSkills,
+} from "@/app/actions/content"
 import { AdminProjects } from "@/components/admin-projects"
 
-const nav = ["Dashboard", "Profile", "Projects", "Experience", "Education", "Skills", "Services", "Journal", "Social accounts", "Messages", "Settings"]
+const nav = [
+  { label: "Dashboard", href: "#dashboard" },
+  { label: "Profile", href: "#" },
+  { label: "Projects", href: "#projects" },
+  { label: "Experience", href: "#experience" },
+  { label: "Education", href: "#education" },
+  { label: "Skills", href: "#skills" },
+  { label: "Services", href: "#" },
+  { label: "Journal", href: "#" },
+  { label: "Social accounts", href: "#" },
+  { label: "Messages", href: "#messages" },
+  { label: "Settings", href: "#" },
+  { label: "Certificates", href: "#certificates" },
+]
 
 function AdminNav() {
   return (
     <nav className="grid gap-1" aria-label="Admin navigation">
-      {nav.map((item, index) => (
-        <a key={item} href={index === 2 ? "#projects" : "#"} className={`rounded-lg px-3 py-2 text-sm transition-colors ${index === 2 ? "bg-muted font-medium text-foreground" : "text-muted-foreground hover:bg-muted hover:text-foreground"}`}>
-          {item}
+      {nav.map((item) => (
+        <a key={item.label} href={item.href} className="rounded-lg px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-600">
+          {item.label}
         </a>
       ))}
     </nav>
@@ -21,18 +41,27 @@ function AdminNav() {
 export default async function AdminPage() {
   const session = await auth.api.getSession({ headers: await headers() })
   const adminEmail = process.env.ADMIN_EMAIL?.trim().toLowerCase()
-  if (!session?.user || !adminEmail || session.user.email.toLowerCase() !== adminEmail) redirect("/sign-in")
-  const projects = await listProjects()
+  if (!session?.user) redirect("/sign-in?reason=session")
+  if (!adminEmail) redirect("/sign-in?reason=not-configured")
+  if (session.user.email.toLowerCase() !== adminEmail) redirect("/sign-in?reason=not-admin")
+  const [projects, skills, experiences, education, certifications, messages] = await Promise.all([
+    listProjects(),
+    listSkills(),
+    listExperiences(),
+    listEducation(),
+    listCertifications(),
+    listContactSubmissions(),
+  ])
 
   return (
-    <main className="min-h-screen bg-muted/30">
+    <main className="admin-workspace min-h-screen bg-muted/30">
       <div className="mx-auto flex min-h-screen max-w-7xl">
-        <aside className="hidden w-60 shrink-0 border-r bg-background p-5 md:block">
+        <aside className="sticky top-0 hidden h-screen w-60 shrink-0 overflow-y-auto overscroll-contain border-r bg-background p-5 md:block">
           <a href="/" className="text-lg font-semibold tracking-tight">alemu<span className="text-lime-500">.</span>dev</a>
           <p className="mt-1 text-xs text-muted-foreground">Portfolio CMS</p>
           <div className="mt-10"><AdminNav /></div>
         </aside>
-        <div className="min-w-0 flex-1 px-4 py-5 sm:px-8 sm:py-8 lg:px-10">
+        <div className="min-w-0 flex-1 px-4 py-5 sm:px-8 sm:py-8 lg:px-10 md:h-screen md:overflow-y-auto md:overscroll-contain">
           <header className="mb-6 flex flex-wrap items-end justify-between gap-4 sm:mb-8">
             <div>
               <p className="text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">Control room</p>
@@ -50,15 +79,22 @@ export default async function AdminPage() {
             <div className="mt-4"><AdminNav /></div>
           </details>
 
-          <section className="mb-6 grid gap-3 sm:mb-8 sm:grid-cols-3" aria-label="Portfolio overview">
+          <section id="dashboard" className="mb-6 grid scroll-mt-6 gap-3 sm:mb-8 sm:grid-cols-3" aria-label="Portfolio overview">
             <div className="rounded-xl border bg-background p-4"><p className="text-xs text-muted-foreground">Published projects</p><p className="mt-2 text-2xl font-semibold">{projects.length}</p></div>
             <div className="rounded-xl border bg-background p-4"><p className="text-xs text-muted-foreground">Editing mode</p><p className="mt-2 text-2xl font-semibold">Live</p></div>
             <div className="rounded-xl border bg-background p-4"><p className="text-xs text-muted-foreground">Public site</p><a href="/" className="mt-2 inline-block text-sm font-medium underline underline-offset-4">View portfolio</a></div>
           </section>
 
           <section id="projects" className="scroll-mt-6">
-            <div className="mb-4"><p className="text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">Content</p><h2 className="mt-1 text-xl font-semibold sm:text-2xl">Projects</h2><p className="mt-1 text-sm text-muted-foreground">Add new work or edit existing projects. Changes appear on the public site.</p></div>
-            <AdminProjects initialProjects={projects} />
+            <div className="mb-4"><p className="text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">Content</p><h2 className="mt-1 text-xl font-semibold sm:text-2xl">Portfolio manager</h2><p className="mt-1 text-sm text-muted-foreground">Update projects, skills, experience, education, and certifications. Changes appear on the public site.</p></div>
+            <AdminProjects
+              initialProjects={projects}
+              initialSkills={skills}
+              initialExperiences={experiences}
+              initialEducation={education}
+              initialCertifications={certifications}
+              initialMessages={messages}
+            />
           </section>
         </div>
       </div>
