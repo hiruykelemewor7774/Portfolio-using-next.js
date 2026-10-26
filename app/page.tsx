@@ -3,14 +3,20 @@
 import { useEffect, useState } from "react";
 import {
   certificates as fallbackCertificates,
+  defaultServices,
   educationEntries as fallbackEducationEntries,
   experiences as fallbackExperiences,
+  journalEntries as fallbackJournalEntries,
+  portfolioProfile as fallbackProfile,
+  portfolioSettings as fallbackSettings,
   process as portfolioProcess,
   projects as portfolioProjects,
   roles as portfolioRoles,
   skills as portfolioSkills,
+  socialAccounts as fallbackSocialAccounts,
 } from "@/lib/content";
 import { submitContact } from "./actions/contact";
+import { subscribeToPortfolioContentChanges } from "@/lib/content-events";
 import {
   ArrowDown,
   ArrowUpRight,
@@ -63,7 +69,14 @@ type PortfolioProject = {
   coverAlt?: string;
   accent?: string;
   icon?: ProjectIconName | React.ComponentType<{ className?: string }>;
+  link?: string | null;
+  featured?: boolean;
 };
+type PortfolioSkill = string | { id?: number; name: string; category?: string };
+type PortfolioService = { id?: number | string; title: string; description: string; icon: string };
+type JournalEntry = { id?: number | string; category: string; title: string; excerpt: string; url?: string | null };
+type SocialAccount = { id?: number | string; platform: string; url: string };
+const serviceIconMap = { Code2, Layers3, Database } as const;
 
 export default function Page() {
   const [dark, setDark] = useState(true);
@@ -71,10 +84,15 @@ export default function Page() {
   const [roleIndex, setRoleIndex] = useState(0);
   const [contactOpen, setContactOpen] = useState(false);
   const [projectItems, setProjectItems] = useState<PortfolioProject[]>(projects as PortfolioProject[]);
-  const [skillItems, setSkillItems] = useState(skills);
+  const [skillItems, setSkillItems] = useState<PortfolioSkill[]>(skills);
   const [experienceItems, setExperienceItems] = useState(experiences);
   const [educationItems, setEducationItems] = useState(educationEntries);
   const [certificateItems, setCertificateItems] = useState(certificates);
+  const [profile, setProfile] = useState(fallbackProfile);
+  const [serviceItems, setServiceItems] = useState<PortfolioService[]>([...defaultServices]);
+  const [journalItems, setJournalItems] = useState<JournalEntry[]>([...fallbackJournalEntries]);
+  const [socialItems, setSocialItems] = useState<SocialAccount[]>([...fallbackSocialAccounts]);
+  const [siteSettings, setSiteSettings] = useState(fallbackSettings);
   const [contactStatus, setContactStatus] = useState<
     "idle" | "sending" | "success" | "error" | "partial"
   >("idle");
@@ -120,17 +138,17 @@ export default function Page() {
   useEffect(() => {
     async function loadPortfolioContent() {
       try {
-        const response = await fetch("/api/content");
+        const response = await fetch("/api/content", { cache: "no-store" });
         if (!response.ok) return;
         const data = await response.json();
 
-        if (Array.isArray(data.projects) && data.projects.length > 0) {
+        if (Array.isArray(data.projects)) {
           setProjectItems(
             data.projects.map((project: any, index: number) => ({
               ...project,
               number: String(project.number ?? project.id ?? index + 1).padStart(2, "0"),
               type: project.type ?? "Portfolio project",
-              cover: project.cover ?? "/project-dashboard.jpg",
+              cover: project.cover || projects[index % projects.length]?.cover || "/project-dashboard.jpg",
               coverAlt: project.coverAlt ?? `${project.title ?? "Project"} preview`,
               result: project.result ?? project.description ?? "Project delivered",
               stack: Array.isArray(project.stack)
@@ -140,33 +158,47 @@ export default function Page() {
                     .map((tag: string) => tag.trim())
                     .filter(Boolean),
               accent: project.accent ?? ["emerald", "blue", "amber", "violet"][index % 4],
-              icon: project.icon ?? ["Layers3", "Database", "HardHat", "Smartphone"][index % 4],
+              icon:
+                typeof project.icon === "string" &&
+                Object.prototype.hasOwnProperty.call(projectIconMap, project.icon)
+                  ? (project.icon as ProjectIconName)
+                  : ["Layers3", "Database", "HardHat", "Smartphone"][index % 4],
             })),
           );
         }
-        if (Array.isArray(data.skills) && data.skills.length > 0) {
-          setSkillItems(
-            data.skills.map((skill: any) =>
-              typeof skill === "string" ? skill : skill.name,
-            ),
-          );
+        if (Array.isArray(data.skills)) {
+          setSkillItems(data.skills.map((skill: any) => typeof skill === "string" ? skill : {
+            id: skill.id,
+            name: skill.name,
+            category: skill.category,
+          }));
         }
-        if (Array.isArray(data.experiences) && data.experiences.length > 0) {
+        if (Array.isArray(data.experiences)) {
           setExperienceItems(data.experiences);
         }
-        if (Array.isArray(data.education) && data.education.length > 0) {
+        if (Array.isArray(data.education)) {
           setEducationItems(data.education);
         }
-        if (Array.isArray(data.certifications) && data.certifications.length > 0) {
+        if (Array.isArray(data.certifications)) {
           setCertificateItems(data.certifications);
         }
+        if (data.profile) setProfile(data.profile);
+        if (Array.isArray(data.services)) setServiceItems(data.services);
+        if (Array.isArray(data.journal)) setJournalItems(data.journal);
+        if (Array.isArray(data.socialAccounts)) setSocialItems(data.socialAccounts);
+        if (data.settings) setSiteSettings(data.settings);
       } catch {
         // Keep the built-in fallback content when the API is unavailable.
       }
     }
 
     void loadPortfolioContent();
+    return subscribeToPortfolioContentChanges(() => void loadPortfolioContent());
   }, []);
+
+  useEffect(() => {
+    document.title = siteSettings.siteTitle;
+  }, [siteSettings.siteTitle]);
 
   function openContact(
     event?: React.MouseEvent<HTMLAnchorElement | HTMLButtonElement>,
@@ -242,23 +274,18 @@ export default function Page() {
       <section className="hero section-wrap" id="top">
         <div className="hero-copy">
           <div className="eyebrow">
-            <span className="status-dot" /> Full-Stack Developer{" "}
+            <span className="status-dot" /> {profile.role}{" "}
             <span className="eyebrow-line" />
             <span className="hero-techline">Next.js · NestJS · Prisma · PostgreSQL</span>
           </div>
           <h1>
             Hi, I&apos;m
             <br />
-            Alemu
-            <br />
-            <em>Kelemework</em>
+            <em>{profile.displayName}</em>
           </h1>
           <p className="hero-intro">
-            I build modern web applications and solve real-world problems.
-            <span>
-              I&apos;m a fourth-year Computer Science student at Mizan-Tepi
-              University and a Software Engineering Intern at Ethio Telecom.
-            </span>
+            {profile.heroIntro}
+            <span>{profile.heroDetail}</span>
           </p>
           <div className="hero-actions">
             <a className="button button-primary" href="#work">
@@ -266,7 +293,7 @@ export default function Page() {
             </a>
             <a
               className="button button-ghost"
-              href="/alemu-kelemework-cv.pdf"
+              href={`${siteSettings.resumeUrl}${siteSettings.resumeUrl.includes("?") ? "&" : "?"}v=20261019-2`}
               download
               aria-label="Download CV"
             >
@@ -274,13 +301,12 @@ export default function Page() {
             </a>
           </div>
           <div className="hero-socials" aria-label="Social links">
-            <a href="https://github.com/hiruykelemewor7774" target="_blank" rel="noreferrer" aria-label="GitHub">
-              <Code2 />
-            </a>
-            <a href="https://www.linkedin.com/in/alemu-kelemework/" target="_blank" rel="noreferrer" aria-label="LinkedIn">
-              <Globe2 />
-            </a>
-            <a href="mailto:alemukelemework363@gmail.com" aria-label="Email">
+            {socialItems.map((account) => (
+              <a key={account.id ?? account.platform} href={account.url} target="_blank" rel="noreferrer" aria-label={account.platform}>
+                <Globe2 />
+              </a>
+            ))}
+            <a href={`mailto:${siteSettings.contactEmail}`} aria-label="Email">
               <Mail />
             </a>
             <a href="#contact" onClick={openContact} aria-label="Send a message">
@@ -291,7 +317,7 @@ export default function Page() {
         <div className="hero-aside">
           <div className="portrait-halo" />
           <div className="portrait-frame">
-            <img src="/alemu-portrait.png" alt="Portrait of Alemu Kelemework" />
+            <img src={profile.portraitUrl} alt={`Portrait of ${profile.displayName}`} />
           </div>
           <div className="hero-signature" aria-hidden="true">
             Alemu <span>Kelemework</span>
@@ -324,7 +350,7 @@ export default function Page() {
               </p>
               <p className="indent">
                 <span className="terminal-key">name</span>: {" "}
-                <span className="terminal-string">&quot;Alemu K.&quot;</span>,
+                <span className="terminal-string">&quot;{profile.displayName}&quot;</span>,
               </p>
               <p className="indent">
                 <span className="terminal-key">role</span>: {" "}
@@ -403,19 +429,15 @@ export default function Page() {
           </div>
           <div className="about-columns">
             <p>
-              I&apos;m a fourth-year Computer Science student at Mizan-Tepi
-              University and a Software Engineering Intern at Ethio Telecom in
-              Dembel, Addis Ababa.
+              {profile.aboutPrimary}
             </p>
             <p>
-              My work sits at the intersection of clean engineering and
-              human-centered design. I turn complex requirements into simple,
-              scalable experiences that teams can actually use.
+              {profile.aboutSecondary}
             </p>
           </div>
           <div className="about-meta">
             <div>
-              <strong>04+</strong>
+              <strong>{profile.yearsLearning}</strong>
               <span>
                 Years learning
                 <br />
@@ -423,7 +445,7 @@ export default function Page() {
               </span>
             </div>
             <div>
-              <strong>10+</strong>
+              <strong>{profile.projectsCompleted}</strong>
               <span>
                 Projects
                 <br />
@@ -500,11 +522,15 @@ export default function Page() {
                   <div className="project-visual">
                     <img src={project.cover} alt={project.coverAlt} loading="lazy" />
                     <span className="project-category">
-                      {project.number} / {project.type}
+                      {project.number} / {project.type}{project.featured ? " · Featured" : ""}
                     </span>
-                    <span className="project-external" aria-hidden="true">
-                      <ArrowUpRight />
-                    </span>
+                    {project.link ? (
+                      <a className="project-external" href={project.link} target="_blank" rel="noreferrer" aria-label={`Open ${project.title}`}>
+                        <ArrowUpRight />
+                      </a>
+                    ) : (
+                      <span className="project-external" aria-hidden="true"><ArrowUpRight /></span>
+                    )}
                   </div>
                   <div className="project-details">
                     <span className="project-icon">
@@ -548,36 +574,16 @@ export default function Page() {
             </p>
           </div>
           <div className="service-grid">
-            <div>
-              <span className="service-icon">
-                <Code2 />
-              </span>
-              <h3>Build digital products</h3>
-              <p>
-                Full-stack web applications with clean architecture, responsive
-                interfaces, and dependable backend systems.
-              </p>
-            </div>
-            <div>
-              <span className="service-icon">
-                <Layers3 />
-              </span>
-              <h3>Shape product experiences</h3>
-              <p>
-                Clear flows, purposeful interfaces, and design decisions that
-                help people move with confidence.
-              </p>
-            </div>
-            <div>
-              <span className="service-icon">
-                <Database />
-              </span>
-              <h3>Make systems reliable</h3>
-              <p>
-                Authentication, data modeling, APIs, and deployment foundations
-                built to grow without drama.
-              </p>
-            </div>
+            {serviceItems.map((service, index) => {
+              const Icon = serviceIconMap[service.icon as keyof typeof serviceIconMap] ?? Code2;
+              return (
+                <div key={service.id ?? `${service.title}-${index}`}>
+                  <span className="service-icon"><Icon /></span>
+                  <h3>{service.title}</h3>
+                  <p>{service.description}</p>
+                </div>
+              );
+            })}
           </div>
         </div>
       </section>
@@ -630,10 +636,10 @@ export default function Page() {
                     ? "skill-pill featured"
                     : "skill-pill"
                 }
-                key={skill}
+                key={typeof skill === "string" ? skill : skill.id ?? `${skill.name}-${index}`}
               >
                 <Check />
-                {skill}
+                {typeof skill === "string" ? skill : <><span>{skill.name}</span>{skill.category && skill.category !== "general" && <small className="skill-category">{skill.category}</small>}</>}
               </span>
             ))}
           </div>
@@ -696,6 +702,7 @@ export default function Page() {
                   {item.issuer}
                   {item.date ? ` · ${item.date}` : ""}
                 </p>
+                {item.url && <a className="credential-link" href={item.url} target="_blank" rel="noreferrer">View credential <ArrowUpRight /></a>}
               </article>
             ))}
           </div>
@@ -719,27 +726,15 @@ export default function Page() {
             </p>
           </div>
           <div className="journal-list">
-            <article>
-              <span>01 · ENGINEERING</span>
-              <h3>
-                Designing a portfolio that can grow with the work{" "}
-                <ArrowUpRight />
-              </h3>
-              <p>
-                Why a professional site should be a living system, not a
-                finished screenshot.
-              </p>
-            </article>
-            <article>
-              <span>02 · BACKEND</span>
-              <h3>
-                What makes an internal tool feel dependable <ArrowUpRight />
-              </h3>
-              <p>
-                Small decisions around feedback, permissions, and data shape the
-                whole experience.
-              </p>
-            </article>
+            {journalItems.map((entry, index) => (
+              <article key={entry.id ?? entry.title}>
+                <span>{String(index + 1).padStart(2, "0")} · {entry.category.toUpperCase()}</span>
+                <h3>
+                  {entry.url ? <a href={entry.url} target="_blank" rel="noreferrer">{entry.title} <ArrowUpRight /></a> : <>{entry.title} <ArrowUpRight /></>}
+                </h3>
+                <p>{entry.excerpt}</p>
+              </article>
+            ))}
           </div>
         </div>
       </section>
@@ -879,23 +874,12 @@ export default function Page() {
           <Terminal /> Designed &amp; built with intention
         </span>
         <div className="socials">
-          <a
-            href="https://github.com/hiruykelemewor7774"
-            target="_blank"
-            rel="noreferrer"
-            aria-label="GitHub"
-          >
-            <Globe2 />
-          </a>
-          <a
-            href="https://www.linkedin.com/in/alemu-kelemework/"
-            target="_blank"
-            rel="noreferrer"
-            aria-label="LinkedIn"
-          >
-            <Globe2 />
-          </a>
-          <a href="mailto:alemukelemework363@gmail.com" aria-label="Email">
+          {socialItems.map((account) => (
+            <a key={account.id ?? account.platform} href={account.url} target="_blank" rel="noreferrer" aria-label={account.platform}>
+              <Globe2 />
+            </a>
+          ))}
+          <a href={`mailto:${siteSettings.contactEmail}`} aria-label="Email">
             <Mail />
           </a>
           <a href="#contact" onClick={openContact} aria-label="Send message">
