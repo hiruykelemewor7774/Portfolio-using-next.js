@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { deleteProject, reorderProjects, saveProject } from "@/app/actions/projects"
 import {
+  deleteContactSubmission,
   deleteCertification,
   deleteEducation,
   deleteExperience,
@@ -24,8 +25,9 @@ import type {
   Project,
   Skill,
 } from "@/lib/db/schema"
+import { notifyPortfolioContentChanged } from "@/lib/content-events"
 
-const emptyProject = { title: "", description: "", tech: "", link: "", featured: false }
+const emptyProject = { title: "", description: "", tech: "", link: "", cover: "", featured: false }
 const emptySkill = { name: "", category: "general" }
 const emptyExperience = { role: "", organization: "", period: "", description: "" }
 const emptyEducation = { degree: "", institution: "", period: "", details: "", status: "In progress" }
@@ -71,12 +73,14 @@ async function moveItem<T extends { id: number }>(
 
   try {
     await persist(reordered.map((item) => item.id))
+    notifyPortfolioContentChanged()
   } catch {
     window.location.reload()
   }
 }
 
 export function AdminProjects({
+  activeSection,
   initialProjects,
   initialSkills,
   initialExperiences,
@@ -84,6 +88,7 @@ export function AdminProjects({
   initialCertifications,
   initialMessages,
 }: {
+  activeSection: string
   initialProjects: Project[]
   initialSkills: Skill[]
   initialExperiences: Experience[]
@@ -120,12 +125,14 @@ export function AdminProjects({
     event.preventDefault()
     setProjectPending(true)
     await saveProject(projectForm, projectEditing ?? undefined)
+    notifyPortfolioContentChanged()
     setProjectPending(false)
     window.location.reload()
   }
 
   async function removeProject(id: number) {
     await deleteProject(id)
+    notifyPortfolioContentChanged()
     setProjects((current) => current.filter((item) => item.id !== id))
   }
 
@@ -133,12 +140,14 @@ export function AdminProjects({
     event.preventDefault()
     setSkillPending(true)
     await saveSkill(skillForm, skillEditing ?? undefined)
+    notifyPortfolioContentChanged()
     setSkillPending(false)
     window.location.reload()
   }
 
   async function removeSkill(id: number) {
     await deleteSkill(id)
+    notifyPortfolioContentChanged()
     setSkills((current) => current.filter((item) => item.id !== id))
   }
 
@@ -146,12 +155,14 @@ export function AdminProjects({
     event.preventDefault()
     setExperiencePending(true)
     await saveExperience(experienceForm, experienceEditing ?? undefined)
+    notifyPortfolioContentChanged()
     setExperiencePending(false)
     window.location.reload()
   }
 
   async function removeExperience(id: number) {
     await deleteExperience(id)
+    notifyPortfolioContentChanged()
     setExperiences((current) => current.filter((item) => item.id !== id))
   }
 
@@ -159,12 +170,14 @@ export function AdminProjects({
     event.preventDefault()
     setEducationPending(true)
     await saveEducation(educationForm, educationEditing ?? undefined)
+    notifyPortfolioContentChanged()
     setEducationPending(false)
     window.location.reload()
   }
 
   async function removeEducation(id: number) {
     await deleteEducation(id)
+    notifyPortfolioContentChanged()
     setEducationEntries((current) => current.filter((item) => item.id !== id))
   }
 
@@ -172,22 +185,26 @@ export function AdminProjects({
     event.preventDefault()
     setCertificatePending(true)
     await saveCertification(certificateForm, certificateEditing ?? undefined)
+    notifyPortfolioContentChanged()
     setCertificatePending(false)
     window.location.reload()
   }
 
   async function removeCertificate(id: number) {
     await deleteCertification(id)
+    notifyPortfolioContentChanged()
     setCertifications((current) => current.filter((item) => item.id !== id))
   }
 
-  const sectionClass = "rounded-2xl border bg-background p-5"
+  const sectionClass = "rounded-xl border border-border/70 bg-background p-5 shadow-sm"
+  const itemCardClass = "admin-item-card rounded-xl border p-4"
+  const formPanelClass = "admin-form-panel rounded-xl border p-4"
 
   return (
     <div className="space-y-8">
-      <section className={`${sectionClass} scroll-mt-6`}>
+      <section id="projects" hidden={activeSection !== "projects"} className={`${sectionClass} scroll-mt-6`}>
         <div className="mb-5 flex items-center justify-between gap-3">
-          <h3 className="text-xl font-semibold">Projects</h3>
+          <h3 className="text-xl font-semibold">Projects <span className="text-sm font-normal text-muted-foreground">({projects.length})</span></h3>
         </div>
         <div className="grid gap-5 lg:grid-cols-[1.2fr_0.8fr]">
           <div className="grid gap-3">
@@ -195,7 +212,7 @@ export function AdminProjects({
               <p className="rounded-xl border border-dashed p-4 text-sm text-muted-foreground">No projects yet.</p>
             ) : (
               projects.map((item, index) => (
-                <article key={item.id} className="rounded-xl border p-4">
+                <article key={item.id} className={itemCardClass}>
                   <div className="flex items-start justify-between gap-3">
                     <div>
                       <div className="flex flex-wrap items-center gap-2">
@@ -223,6 +240,7 @@ export function AdminProjects({
                             description: item.description,
                             tech: item.tech,
                             link: item.link ?? "",
+                            cover: item.cover ?? "",
                             featured: item.featured,
                           })
                         }}
@@ -240,7 +258,7 @@ export function AdminProjects({
             )}
           </div>
 
-          <form onSubmit={submitProject} className="rounded-xl border p-4">
+          <form onSubmit={submitProject} className={formPanelClass}>
             <h4 className="text-lg font-semibold">{projectEditing ? "Update project" : "New project"}</h4>
             <div className="mt-4 grid gap-3">
               <input
@@ -262,6 +280,13 @@ export function AdminProjects({
                 onChange={(event) => setProjectForm((current) => ({ ...current, link: event.target.value }))}
                 placeholder="Project URL"
                 className="rounded-lg border px-3 py-2"
+              />
+              <input
+                value={projectForm.cover}
+                onChange={(event) => setProjectForm((current) => ({ ...current, cover: event.target.value }))}
+                placeholder="Image path or URL (e.g. /project-dashboard.jpg)"
+                className="rounded-lg border px-3 py-2"
+                aria-label="Project image path or URL"
               />
               <textarea
                 value={projectForm.description}
@@ -301,9 +326,9 @@ export function AdminProjects({
         </div>
       </section>
 
-      <section id="skills" className={`${sectionClass} scroll-mt-6`}>
+      <section id="skills" hidden={activeSection !== "skills"} className={`${sectionClass} scroll-mt-6`}>
         <div className="mb-5 flex items-center justify-between gap-3">
-          <h3 className="text-xl font-semibold">Skills</h3>
+          <h3 className="text-xl font-semibold">Skills <span className="text-sm font-normal text-muted-foreground">({skills.length})</span></h3>
         </div>
         <div className="grid gap-5 lg:grid-cols-[1.2fr_0.8fr]">
           <div className="flex flex-wrap gap-2">
@@ -311,7 +336,7 @@ export function AdminProjects({
               <p className="text-sm text-muted-foreground">No skills yet.</p>
             ) : (
               skills.map((item, index) => (
-                <div key={item.id} className="flex items-center gap-2 rounded-lg border px-3 py-1.5 text-sm">
+                <div key={item.id} className="admin-item-card flex items-center gap-2 rounded-lg border px-3 py-2 text-sm">
                   <span>{item.name}</span>
                   <OrderControls label="skill" index={index} count={skills.length} onMove={(direction) => void moveItem(skills, item.id, direction, setSkills, reorderSkills)} />
                   <button
@@ -332,7 +357,7 @@ export function AdminProjects({
               ))
             )}
           </div>
-          <form onSubmit={submitSkill} className="rounded-xl border p-4">
+          <form onSubmit={submitSkill} className={formPanelClass}>
             <h4 className="text-lg font-semibold">{skillEditing ? "Update skill" : "New skill"}</h4>
             <div className="mt-4 grid gap-3">
               <input
@@ -371,9 +396,9 @@ export function AdminProjects({
         </div>
       </section>
 
-      <section id="experience" className={`${sectionClass} scroll-mt-6`}>
+      <section id="experience" hidden={activeSection !== "experience"} className={`${sectionClass} scroll-mt-6`}>
         <div className="mb-5 flex items-center justify-between gap-3">
-          <h3 className="text-xl font-semibold">Experience</h3>
+          <h3 className="text-xl font-semibold">Experience <span className="text-sm font-normal text-muted-foreground">({experiences.length})</span></h3>
         </div>
         <div className="grid gap-5 lg:grid-cols-[1.2fr_0.8fr]">
           <div className="grid gap-3">
@@ -381,7 +406,7 @@ export function AdminProjects({
               <p className="rounded-xl border border-dashed p-4 text-sm text-muted-foreground">No experience yet.</p>
             ) : (
               experiences.map((item, index) => (
-                <article key={item.id} className="rounded-xl border p-4">
+                <article key={item.id} className={itemCardClass}>
                   <div className="flex items-start justify-between gap-3">
                     <div>
                       <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">{item.period}</p>
@@ -415,7 +440,7 @@ export function AdminProjects({
               ))
             )}
           </div>
-          <form onSubmit={submitExperience} className="rounded-xl border p-4">
+          <form onSubmit={submitExperience} className={formPanelClass}>
             <h4 className="text-lg font-semibold">{experienceEditing ? "Update experience" : "New experience"}</h4>
             <div className="mt-4 grid gap-3">
               <input
@@ -469,9 +494,9 @@ export function AdminProjects({
         </div>
       </section>
 
-      <section id="education" className={`${sectionClass} scroll-mt-6`}>
+      <section id="education" hidden={activeSection !== "education"} className={`${sectionClass} scroll-mt-6`}>
         <div className="mb-5 flex items-center justify-between gap-3">
-          <h3 className="text-xl font-semibold">Education</h3>
+          <h3 className="text-xl font-semibold">Education <span className="text-sm font-normal text-muted-foreground">({educationEntries.length})</span></h3>
         </div>
         <div className="grid gap-5 lg:grid-cols-[1.2fr_0.8fr]">
           <div className="grid gap-3">
@@ -479,7 +504,7 @@ export function AdminProjects({
               <p className="rounded-xl border border-dashed p-4 text-sm text-muted-foreground">No education entries yet.</p>
             ) : (
               educationEntries.map((item, index) => (
-                <article key={item.id} className="rounded-xl border p-4">
+                <article key={item.id} className={itemCardClass}>
                   <div className="flex items-start justify-between gap-3">
                     <div>
                       <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">{item.period}</p>
@@ -514,7 +539,7 @@ export function AdminProjects({
               ))
             )}
           </div>
-          <form onSubmit={submitEducation} className="rounded-xl border p-4">
+          <form onSubmit={submitEducation} className={formPanelClass}>
             <h4 className="text-lg font-semibold">{educationEditing ? "Update education" : "New education"}</h4>
             <div className="mt-4 grid gap-3">
               <input
@@ -575,9 +600,9 @@ export function AdminProjects({
         </div>
       </section>
 
-      <section id="certificates" className={`${sectionClass} scroll-mt-6`}>
+      <section id="certificates" hidden={activeSection !== "certificates"} className={`${sectionClass} scroll-mt-6`}>
         <div className="mb-5 flex items-center justify-between gap-3">
-          <h3 className="text-xl font-semibold">Certificates</h3>
+          <h3 className="text-xl font-semibold">Certificates <span className="text-sm font-normal text-muted-foreground">({certifications.length})</span></h3>
         </div>
         <div className="grid gap-5 lg:grid-cols-[1.2fr_0.8fr]">
           <div className="grid gap-3">
@@ -585,7 +610,7 @@ export function AdminProjects({
               <p className="rounded-xl border border-dashed p-4 text-sm text-muted-foreground">No certificates yet.</p>
             ) : (
               certifications.map((item, index) => (
-                <article key={item.id} className="rounded-xl border p-4">
+                <article key={item.id} className={itemCardClass}>
                   <div className="flex items-start justify-between gap-3">
                     <div>
                       <h4 className="font-semibold">{item.title}</h4>
@@ -624,7 +649,7 @@ export function AdminProjects({
               ))
             )}
           </div>
-          <form onSubmit={submitCertificate} className="rounded-xl border p-4">
+          <form onSubmit={submitCertificate} className={formPanelClass}>
             <h4 className="text-lg font-semibold">{certificateEditing ? "Update certificate" : "New certificate"}</h4>
             <div className="mt-4 grid gap-3">
               <input
@@ -676,9 +701,9 @@ export function AdminProjects({
         </div>
       </section>
 
-      <section id="messages" className={`${sectionClass} scroll-mt-6`}>
+      <section id="messages" hidden={activeSection !== "messages"} className={`${sectionClass} scroll-mt-6`}>
         <div className="mb-5">
-          <h3 className="text-xl font-semibold">Messages</h3>
+          <h3 className="text-xl font-semibold">Messages <span className="text-sm font-normal text-muted-foreground">({initialMessages.length})</span></h3>
           <p className="mt-1 text-sm text-muted-foreground">Contact form submissions, newest first.</p>
         </div>
         {initialMessages.length === 0 ? (
@@ -686,7 +711,7 @@ export function AdminProjects({
         ) : (
           <div className="grid gap-3">
             {initialMessages.map((message) => (
-              <article key={message.id} className="rounded-xl border bg-background p-4">
+              <article key={message.id} className={`${itemCardClass} bg-background`}>
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
                     <h4 className="font-semibold">{message.name}</h4>
@@ -699,6 +724,17 @@ export function AdminProjects({
                   </time>
                 </div>
                 <p className="mt-4 whitespace-pre-wrap break-words text-sm leading-6">{message.message}</p>
+                <button
+                  type="button"
+                  className="mt-3 text-sm text-destructive underline"
+                  onClick={async () => {
+                    await deleteContactSubmission(message.id)
+                    notifyPortfolioContentChanged()
+                    window.location.reload()
+                  }}
+                >
+                  Delete message
+                </button>
               </article>
             ))}
           </div>
