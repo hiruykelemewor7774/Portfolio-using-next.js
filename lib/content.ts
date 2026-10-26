@@ -79,6 +79,19 @@ export const projects: PortfolioProject[] = [
     accent: "violet",
     icon: Smartphone,
   },
+  {
+    number: "05",
+    type: "Health technology",
+    title: "Malaria Identification",
+    cover: "/project-malaria-identification.svg",
+    coverAlt: "Illustration of a malaria parasite among red blood cells under a microscope",
+    description:
+      "A malaria identification project focused on recognizing parasites in blood-smear imagery.",
+    result: "Visual identification from microscope samples",
+    stack: ["Computer Vision", "Image Analysis", "Healthcare"],
+    accent: "emerald",
+    icon: Layers3,
+  },
 ]
 
 export const skills = [
@@ -197,3 +210,37 @@ export const services = [
     icon: Database,
   },
 ] as const
+
+export const portfolioProfile = {
+  displayName: "Alemu Kelemework",
+  role: "Full-Stack Developer",
+  portraitUrl: "/alemu-portrait.png",
+  heroIntro: "I build modern web applications and solve real-world problems.",
+  heroDetail: "I'm a fourth-year Computer Science student at Mizan-Tepi University and a Software Engineering Intern at Ethio Telecom.",
+  aboutPrimary: "I'm a fourth-year Computer Science student at Mizan-Tepi University and a Software Engineering Intern at Ethio Telecom in Dembel, Addis Ababa.",
+  aboutSecondary: "My work sits at the intersection of clean engineering and human-centered design. I turn complex requirements into simple, scalable experiences that teams can actually use.",
+  yearsLearning: "04+",
+  projectsCompleted: "10+",
+}
+
+export const defaultServices = [
+  { title: "Build digital products", description: "Full-stack web applications with clean architecture, responsive interfaces, and dependable backend systems.", icon: "Code2" },
+  { title: "Shape product experiences", description: "Clear flows, purposeful interfaces, and design decisions that help people move with confidence.", icon: "Layers3" },
+  { title: "Make systems reliable", description: "Authentication, data modeling, APIs, and deployment foundations built to grow without drama.", icon: "Database" },
+] as const
+
+export const journalEntries = [
+  { id: "1", category: "Engineering", title: "Designing a portfolio that can grow with the work", excerpt: "Why a professional site should be a living system, not a finished screenshot.", url: "" },
+  { id: "2", category: "Backend", title: "What makes an internal tool feel dependable", excerpt: "Small decisions around feedback, permissions, and data shape the whole experience.", url: "" },
+] as const
+
+export const socialAccounts = [
+  { id: "github", platform: "GitHub", url: "https://github.com/hiruykelemewor7774" },
+  { id: "linkedin", platform: "LinkedIn", url: "https://www.linkedin.com/in/alemu-kelemework/" },
+] as const
+
+export const portfolioSettings = {
+  siteTitle: "Alemu Kelemework — Developer Portfolio",
+  contactEmail: "alemukelemework363@gmail.com",
+  resumeUrl: "/alemu-kelemework-cv.pdf",
+}
