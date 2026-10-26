@@ -1,0 +1,1 @@
+ALTER TABLE "portfolioProfile" ADD COLUMN "portraitUrl" text DEFAULT '/alemu-portrait.png' NOT NULL;
