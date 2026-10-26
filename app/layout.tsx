@@ -3,11 +3,29 @@ import type { Metadata, Viewport } from 'next'
 import { OfflineStatus } from './offline-status'
 import './globals.css'
 
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
+
 export const metadata: Metadata = {
+  metadataBase: new URL(siteUrl),
   title: 'Alemu Kelemework — Developer Portfolio',
   description: 'Portfolio of Alemu Kelemework, a full-stack developer and Computer Science student building thoughtful digital experiences.',
   generator: 'v0.app',
   manifest: '/manifest.webmanifest',
+  alternates: {
+    canonical: '/',
+  },
+  openGraph: {
+    title: 'Alemu Kelemework — Developer Portfolio',
+    description: 'Full-stack developer portfolio and project work by Alemu Kelemework.',
+    url: siteUrl,
+    siteName: 'Alemu Kelemework',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Alemu Kelemework — Developer Portfolio',
+    description: 'Full-stack developer portfolio and project work by Alemu Kelemework.',
+  },
   icons: {
     icon: [
       {
