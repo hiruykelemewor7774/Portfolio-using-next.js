@@ -8,7 +8,7 @@ import { headers } from "next/headers"
 import { revalidatePath } from "next/cache"
 import { z } from "zod"
 
-const projectSchema = z.object({ title: z.string().min(2), description: z.string().min(10), tech: z.string().min(2), link: z.string().url().optional().or(z.literal("")), featured: z.boolean().default(false) })
+const projectSchema = z.object({ title: z.string().min(2), description: z.string().min(10), tech: z.string().min(2), link: z.string().url().optional().or(z.literal("")), cover: z.string().trim().max(1_000_000).refine((value) => value === "" || value.startsWith("/") || /^https?:\/\//i.test(value) || value.startsWith("data:image/webp;base64,")), featured: z.boolean().default(false) })
 async function requireAdmin() {
 	const session = await auth.api.getSession({ headers: await headers() })
 	const adminEmail = process.env.ADMIN_EMAIL?.trim().toLowerCase()
