@@ -1,0 +1,307 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Alemu Kelemework - CV</title>
+    <style>
+      @page {
+        size: Letter;
+        margin: 0.52in;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        color: #18211c;
+        font:
+          10px/1.4 Arial,
+          Helvetica,
+          sans-serif;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+      header {
+        position: relative;
+        padding: 0 0 15px;
+        border-bottom: 3px solid #94c83d;
+      }
+      header::after {
+        position: absolute;
+        right: 0;
+        bottom: 15px;
+        width: 44px;
+        height: 44px;
+        border: 1px solid #d7e5c7;
+        border-radius: 50%;
+        background: #f3f7ec;
+        color: #638d2c;
+        content: "AK";
+        font-size: 14px;
+        font-weight: 700;
+        line-height: 42px;
+        text-align: center;
+      }
+      h1 {
+        margin: 0;
+        font-size: 28px;
+        line-height: 1.05;
+        letter-spacing: 0.2px;
+      }
+      .role {
+        margin-top: 5px;
+        color: #527b27;
+        font-size: 12px;
+        font-weight: 700;
+      }
+      .contact {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 5px 15px;
+        margin-top: 10px;
+        color: #47534a;
+        font-size: 9px;
+      }
+      a {
+        color: inherit;
+        text-decoration: none;
+      }
+      .summary {
+        padding: 12px 0 11px;
+        border-bottom: 1px solid #dce5d6;
+      }
+      .section-title {
+        margin: 0 0 7px;
+        color: #527b27;
+        font-size: 9px;
+        font-weight: 700;
+        letter-spacing: 1.3px;
+        text-transform: uppercase;
+      }
+      .summary p {
+        margin: 0;
+        color: #354039;
+        font-size: 10px;
+        line-height: 1.5;
+      }
+      .columns {
+        display: grid;
+        grid-template-columns: 1.65fr 1fr;
+        gap: 24px;
+        padding-top: 13px;
+      }
+      section {
+        margin: 0 0 13px;
+        break-inside: avoid;
+      }
+      .entry {
+        margin: 0 0 10px;
+        break-inside: avoid;
+      }
+      .entry-head {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 10px;
+      }
+      h3 {
+        margin: 0;
+        color: #1e2921;
+        font-size: 11px;
+        line-height: 1.3;
+      }
+      .period {
+        color: #657166;
+        font-size: 8px;
+        font-weight: 700;
+        white-space: nowrap;
+      }
+      .meta {
+        margin-top: 2px;
+        color: #527b27;
+        font-size: 9px;
+        font-weight: 700;
+      }
+      .entry p {
+        margin: 3px 0 0;
+        color: #4b554e;
+        font-size: 9px;
+        line-height: 1.4;
+      }
+      .skill-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 5px;
+      }
+      .skill {
+        padding: 4px 7px;
+        border: 1px solid #dce7d2;
+        border-radius: 10px;
+        background: #f4f8ee;
+        color: #354b27;
+        font-size: 8px;
+      }
+      ul {
+        margin: 5px 0 0;
+        padding-left: 14px;
+        color: #4b554e;
+      }
+      li {
+        margin: 0 0 3px;
+        font-size: 9px;
+      }
+      .education-note {
+        color: #4b554e;
+        font-size: 9px;
+      }
+      footer {
+        margin-top: 2px;
+        padding-top: 8px;
+        border-top: 1px solid #dce5d6;
+        color: #788279;
+        font-size: 8px;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>Alemu Kelemework</h1>
+      <div class="role">Full-Stack Developer</div>
+      <div class="contact">
+        <a href="mailto:alemukelemework363@gmail.com"
+          >alemukelemework363@gmail.com</a
+        >
+        <a href="https://github.com/hiruykelemewor7774"
+          >github.com/hiruykelemewor7774</a
+        >
+        <a href="https://www.linkedin.com/in/alemu-kelemework/"
+          >linkedin.com/in/alemu-kelemework</a
+        >
+        <span>Dembel, Addis Ababa, Ethiopia</span>
+      </div>
+    </header>
+
+    <div class="summary">
+      <h2 class="section-title">Profile</h2>
+      <p>
+        Fourth-year Computer Science student at Mizan-Tepi University and
+        Software Engineering Intern at Ethio Telecom. Builds modern web
+        applications, combining clean engineering with human-centered design to
+        turn complex requirements into simple, scalable experiences.
+      </p>
+    </div>
+
+    <div class="columns">
+      <div>
+        <section>
+          <h2 class="section-title">Experience</h2>
+          <article class="entry">
+            <div class="entry-head">
+              <h3>Software Engineering Intern</h3>
+              <span class="period">2024 - Present</span>
+            </div>
+            <div class="meta">Ethio Telecom</div>
+            <p>
+              Building internal tools and learning how reliable software
+              supports a large, connected organization.
+            </p>
+          </article>
+          <article class="entry">
+            <div class="entry-head">
+              <h3>Computer Science Student</h3>
+              <span class="period">2022 - Present</span>
+            </div>
+            <div class="meta">Mizan-Tepi University</div>
+            <p>
+              Studying the foundations behind the interfaces, systems, and
+              products I build.
+            </p>
+          </article>
+        </section>
+
+        <section>
+          <h2 class="section-title">Selected Projects</h2>
+          <article class="entry">
+            <div class="entry-head"><h3>Task Management System</h3></div>
+            <p>Team workspace for planning, assigning, and tracking work.</p>
+            <div class="meta">Next.js | NestJS | Swagger</div>
+          </article>
+          <article class="entry">
+            <div class="entry-head"><h3>Restaurant Management</h3></div>
+            <p>
+              Operations platform connecting menus, orders, staff, and daily
+              decisions.
+            </p>
+            <div class="meta">Next.js | TypeScript | PostgreSQL</div>
+          </article>
+          <article class="entry">
+            <div class="entry-head"><h3>Construction Management</h3></div>
+            <p>
+              Platform for managing projects, teams, materials, and site
+              operations.
+            </p>
+            <div class="meta">Next.js | NestJS | Prisma | PostgreSQL</div>
+          </article>
+          <article class="entry">
+            <div class="entry-head"><h3>Qene Bet Website</h3></div>
+            <p>
+              Mobile-first experience designed to simplify daily workflows and
+              improve accessibility.
+            </p>
+            <div class="meta">React | TypeScript | API Integration</div>
+          </article>
+        </section>
+      </div>
+
+      <aside>
+        <section>
+          <h2 class="section-title">Technical Skills</h2>
+          <div class="skill-list">
+            <span class="skill">HTML</span><span class="skill">CSS</span
+            ><span class="skill">JavaScript</span>
+            <span class="skill">TypeScript</span><span class="skill">React</span
+            ><span class="skill">Next.js</span> <span class="skill">NestJS</span
+            ><span class="skill">Swagger</span
+            ><span class="skill">Better Auth</span>
+            <span class="skill">Docker</span><span class="skill">Prisma</span
+            ><span class="skill">PostgreSQL</span> <span class="skill">Git</span
+            ><span class="skill">Tailwind CSS</span>
+          </div>
+        </section>
+
+        <section>
+          <h2 class="section-title">Education</h2>
+          <article class="entry">
+            <h3>BSc. Computer Science</h3>
+            <div class="meta">Mizan-Tepi University</div>
+            <p>2022 - Present | In progress</p>
+          </article>
+          <article class="entry">
+            <h3>Engineering through Building</h3>
+            <div class="meta">Self-directed practice</div>
+            <p>
+              Continuous practice in product architecture, backend systems,
+              accessible interfaces, and deployment workflows.
+            </p>
+          </article>
+        </section>
+
+        <section>
+          <h2 class="section-title">Focus</h2>
+          <ul>
+            <li>Full-stack web development</li>
+            <li>Product and interface design</li>
+            <li>Reliable backend systems</li>
+            <li>Accessible, responsive experiences</li>
+          </ul>
+        </section>
+      </aside>
+    </div>
+
+    <footer>
+      References and additional project details available on the portfolio
+      website.
+    </footer>
+  </body>
+</html>
