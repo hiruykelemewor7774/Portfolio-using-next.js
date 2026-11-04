@@ -17,10 +17,12 @@ import {
 } from "@/lib/content";
 import { submitContact } from "./actions/contact";
 import { subscribeToPortfolioContentChanges } from "@/lib/content-events";
+import { SkillIcon } from "@/components/skill-icon";
 import {
   ArrowDown,
   ArrowUpRight,
   Check,
+  Computer,
   Code2,
   Database,
   GraduationCap,
@@ -54,6 +56,7 @@ const projectIconMap = {
   Database,
   HardHat,
   Smartphone,
+  Computer,
 } as const;
 
 type ProjectIconName = keyof typeof projectIconMap;
@@ -77,6 +80,25 @@ type PortfolioService = { id?: number | string; title: string; description: stri
 type JournalEntry = { id?: number | string; category: string; title: string; excerpt: string; url?: string | null };
 type SocialAccount = { id?: number | string; platform: string; url: string };
 const serviceIconMap = { Code2, Layers3, Database } as const;
+
+function getProjectCover(
+  title: unknown,
+  savedCover: string | null | undefined,
+  index: number,
+) {
+  const normalizedTitle = typeof title === "string" ? title.trim().toLowerCase() : "";
+  const matchingDefault = projects.find((project) => {
+    const defaultTitle = project.title.toLowerCase();
+    return normalizedTitle === defaultTitle || normalizedTitle.startsWith(`${defaultTitle} `);
+  });
+  const isBundledCover = projects.some((project) => project.cover === savedCover);
+
+  if (matchingDefault && (isBundledCover || !savedCover)) {
+    return matchingDefault.cover;
+  }
+
+  return savedCover || projects[index % projects.length]?.cover || "/project-dashboard.jpg";
+}
 
 export default function Page() {
   const [dark, setDark] = useState(true);
@@ -144,26 +166,34 @@ export default function Page() {
 
         if (Array.isArray(data.projects)) {
           setProjectItems(
-            data.projects.map((project: any, index: number) => ({
-              ...project,
-              number: String(project.number ?? project.id ?? index + 1).padStart(2, "0"),
-              type: project.type ?? "Portfolio project",
-              cover: project.cover || projects[index % projects.length]?.cover || "/project-dashboard.jpg",
-              coverAlt: project.coverAlt ?? `${project.title ?? "Project"} preview`,
-              result: project.result ?? project.description ?? "Project delivered",
-              stack: Array.isArray(project.stack)
-                ? project.stack
-                : String(project.tech ?? "")
-                    .split(",")
-                    .map((tag: string) => tag.trim())
-                    .filter(Boolean),
-              accent: project.accent ?? ["emerald", "blue", "amber", "violet"][index % 4],
-              icon:
-                typeof project.icon === "string" &&
-                Object.prototype.hasOwnProperty.call(projectIconMap, project.icon)
-                  ? (project.icon as ProjectIconName)
-                  : ["Layers3", "Database", "HardHat", "Smartphone"][index % 4],
-            })),
+            data.projects.map((project: any, index: number) => {
+              const normalizedTitle = String(project.title ?? "").trim().toLowerCase();
+              const matchingDefault = projects.find((defaultProject) => {
+                const defaultTitle = defaultProject.title.toLowerCase();
+                return normalizedTitle === defaultTitle || normalizedTitle.startsWith(`${defaultTitle} `);
+              });
+
+              return {
+                ...project,
+                number: String(project.number ?? project.id ?? index + 1).padStart(2, "0"),
+                type: project.type ?? "Portfolio project",
+                cover: getProjectCover(project.title, project.cover, index),
+                coverAlt: project.coverAlt ?? matchingDefault?.coverAlt ?? `${project.title ?? "Project"} preview`,
+                result: project.result ?? matchingDefault?.result ?? project.description ?? "Project delivered",
+                stack: Array.isArray(project.stack)
+                  ? project.stack
+                  : String(project.tech ?? "")
+                      .split(",")
+                      .map((tag: string) => tag.trim())
+                      .filter(Boolean),
+                accent: project.accent ?? matchingDefault?.accent ?? ["emerald", "blue", "amber", "violet"][index % 4],
+                icon:
+                  typeof project.icon === "string" &&
+                  Object.prototype.hasOwnProperty.call(projectIconMap, project.icon)
+                    ? (project.icon as ProjectIconName)
+                    : matchingDefault?.icon ?? ["Layers3", "Database", "HardHat", "Smartphone"][index % 4],
+              };
+            }),
           );
         }
         if (Array.isArray(data.skills)) {
@@ -390,16 +420,16 @@ export default function Page() {
         </div>
       </section>
 
+      <a className="scroll-cue" href="#about" aria-label="Scroll down to About me">
+        <span>Scroll Down</span>
+        <ArrowDown />
+      </a>
       <div className="hero-stats section-wrap" aria-label="Portfolio highlights">
         <div><GraduationCap /><strong>10+</strong><span>Projects completed</span></div>
         <div><Code2 /><strong>4+</strong><span>Years learning</span></div>
         <div><MapPin /><strong>Addis Ababa</strong><span>Based in Ethiopia</span></div>
         <div><Star /><strong>{skills.length}+</strong><span>Technologies used</span></div>
       </div>
-      <a className="scroll-cue" href="#about" aria-label="Scroll down to About me">
-        <span>Scroll Down</span>
-        <ArrowDown />
-      </a>
 
       <div className="ticker">
         <div className="ticker-track">
@@ -549,6 +579,13 @@ export default function Page() {
                     </div>
                     </div>
                   </div>
+                  {project.link && (
+                    <div className="project-card-footer">
+                      <a className="project-view-link" href={project.link} target="_blank" rel="noreferrer">
+                        View project <ArrowUpRight />
+                      </a>
+                    </div>
+                  )}
                 </article>
               );
             })}
@@ -638,8 +675,20 @@ export default function Page() {
                 }
                 key={typeof skill === "string" ? skill : skill.id ?? `${skill.name}-${index}`}
               >
-                <Check />
-                {typeof skill === "string" ? skill : <><span>{skill.name}</span>{skill.category && skill.category !== "general" && <small className="skill-category">{skill.category}</small>}</>}
+                {typeof skill === "string" ? (
+                  <>
+                    <SkillIcon name={skill} />
+                    <span>{skill}</span>
+                  </>
+                ) : (
+                  <>
+                    <SkillIcon name={skill.name} category={skill.category} />
+                    <span>{skill.name}</span>
+                    {skill.category && skill.category !== "general" && (
+                      <small className="skill-category">{skill.category}</small>
+                    )}
+                  </>
+                )}
               </span>
             ))}
           </div>
