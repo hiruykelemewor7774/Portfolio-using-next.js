@@ -15,7 +15,9 @@ import {
   listSocialAccounts,
 } from "@/app/actions/content"
 import { AdminContentPages } from "@/components/admin-content-pages"
+import { AdminNotifications } from "@/components/admin-notifications"
 import { AdminProjects } from "@/components/admin-projects"
+import { SignOutButton } from "@/components/sign-out-button"
 
 const nav = [
   { id: "dashboard", label: "Dashboard" },
@@ -47,9 +49,10 @@ function AdminNav({ activeSection }: { activeSection: string }) {
 export default async function AdminPage({
   searchParams,
 }: {
-  searchParams: Promise<{ section?: string }>
+  searchParams: Promise<{ section?: string; message?: string }>
 }) {
-  const { section } = await searchParams
+  const { section, message } = await searchParams
+  const selectedMessageId = message && /^\d+$/.test(message) ? Number(message) : undefined
   const activeSection = nav.find((item) => item.id === section)?.id ?? "dashboard"
   const session = await auth.api.getSession({ headers: await headers() })
   const adminEmail = process.env.ADMIN_EMAIL?.trim().toLowerCase()
@@ -79,15 +82,16 @@ export default async function AdminPage({
           <div className="mt-10"><AdminNav activeSection={activeSection} /></div>
         </aside>
         <div className="min-w-0 flex-1 px-4 py-5 sm:px-8 sm:py-8 lg:px-10 md:h-screen md:overflow-y-auto md:overscroll-contain">
-          <header className="mb-6 flex flex-wrap items-end justify-between gap-4 sm:mb-8">
-            <div>
+          <header className="mb-6 flex flex-wrap items-start justify-between gap-4 sm:mb-8 lg:flex-nowrap">
+            <div className="min-w-0">
               <p className="text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">Control room</p>
               <h1 className="mt-2 text-2xl font-semibold tracking-tight sm:text-4xl">Good morning, {session.user.name || "Alemu"}</h1>
               <p className="mt-2 max-w-xl text-sm text-muted-foreground">Manage the content that powers your public portfolio.</p>
             </div>
-            <div className="flex w-full items-center justify-between gap-3 sm:w-auto sm:justify-end">
+            <div className="flex w-full items-center justify-between gap-3 sm:w-auto sm:justify-end lg:shrink-0">
               <span className="hidden max-w-48 truncate text-xs text-muted-foreground sm:inline">{session.user.email}</span>
-              <form action="/api/auth/sign-out" method="post"><button className="min-h-10 rounded-lg border bg-background px-4 py-2 text-sm font-medium transition-colors hover:bg-muted">Sign out</button></form>
+              <AdminNotifications messages={messages} />
+              <SignOutButton />
             </div>
           </header>
 
@@ -96,10 +100,29 @@ export default async function AdminPage({
             <div className="mt-4"><AdminNav activeSection={activeSection} /></div>
           </details>
 
-          <section id="dashboard" hidden={activeSection !== "dashboard"} className={`${activeSection === "dashboard" ? "grid" : "hidden"} mb-6 scroll-mt-6 gap-3 sm:mb-8 sm:grid-cols-3`} aria-label="Portfolio overview">
-            <div className="admin-summary-card rounded-xl border bg-background p-4"><p className="text-xs text-muted-foreground">Published projects</p><p className="mt-2 text-2xl font-semibold">{projects.length}</p></div>
-            <div className="admin-summary-card rounded-xl border bg-background p-4"><p className="text-xs text-muted-foreground">Editing mode</p><p className="mt-2 text-2xl font-semibold">Live</p></div>
-            <div className="admin-summary-card rounded-xl border bg-background p-4"><p className="text-xs text-muted-foreground">Public site</p><a href="/" className="mt-2 inline-block text-sm font-medium underline underline-offset-4">View portfolio</a></div>
+          <section id="dashboard" hidden={activeSection !== "dashboard"} className={`${activeSection === "dashboard" ? "grid" : "hidden"} mb-6 scroll-mt-6 gap-3 sm:mb-8 sm:grid-cols-2 xl:grid-cols-4`} aria-label="Portfolio overview">
+            <a href="/admin?section=projects" className="admin-summary-card rounded-xl border bg-background p-4 text-foreground transition hover:-translate-y-0.5 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-600">
+              <p className="text-xs text-muted-foreground">Published projects</p>
+              <p className="mt-2 text-2xl font-semibold">{projects.length}</p>
+              <span className="mt-2 block text-xs text-muted-foreground">Manage projects</span>
+            </a>
+            <a href="/admin?section=profile" className="admin-summary-card rounded-xl border bg-background p-4 text-foreground transition hover:-translate-y-0.5 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-600">
+              <p className="text-xs text-muted-foreground">Editing mode</p>
+              <p className="mt-2 text-2xl font-semibold">Live</p>
+              <span className="mt-2 block text-xs text-muted-foreground">Edit portfolio content</span>
+            </a>
+            <a href="/" target="_blank" rel="noreferrer" className="admin-summary-card rounded-xl border bg-background p-4 text-foreground transition hover:-translate-y-0.5 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-600">
+              <p className="text-xs text-muted-foreground">Public site</p>
+              <p className="mt-2 text-base font-semibold underline underline-offset-4">View portfolio</p>
+              <span className="mt-2 block text-xs text-muted-foreground">Opens in a new tab</span>
+            </a>
+            <a href="/admin?section=messages" className="admin-summary-card rounded-xl border bg-background p-4 text-foreground transition hover:-translate-y-0.5 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-600">
+              <p className="text-xs text-muted-foreground">Recent messages</p>
+              <p className="mt-2 text-2xl font-semibold">{messages.length}</p>
+              <span className="mt-2 block truncate text-xs text-muted-foreground">
+                {messages[0] ? `${messages[0].name}: ${messages[0].message}` : "No messages yet"}
+              </span>
+            </a>
           </section>
 
           <section id="projects" hidden={!(["projects", "skills", "experience", "education", "certificates", "messages"].includes(activeSection))} className="scroll-mt-6">
@@ -112,6 +135,7 @@ export default async function AdminPage({
               initialEducation={education}
               initialCertifications={certifications}
               initialMessages={messages}
+              selectedMessageId={selectedMessageId}
             />
           </section>
           <AdminContentPages
