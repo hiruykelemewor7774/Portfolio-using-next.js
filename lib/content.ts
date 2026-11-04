@@ -1,5 +1,6 @@
 import {
   Code2,
+  Computer,
   Database,
   HardHat,
   Layers3,
@@ -91,6 +92,19 @@ export const projects: PortfolioProject[] = [
     stack: ["Computer Vision", "Image Analysis", "Healthcare"],
     accent: "emerald",
     icon: Layers3,
+  },
+  {
+    number: "06",
+    type: "University system",
+    title: "University PC Registration",
+    cover: "/project-university-pc-registration.svg",
+    coverAlt: "Illustration of a university student registering a computer in a campus lab",
+    description:
+      "A campus registration system for organizing student computer records, assigned devices, and computer lab access.",
+    result: "Clear, organized PC registration for the university",
+    stack: ["University", "PC Registration", "Student Records", "Computer Lab"],
+    accent: "blue",
+    icon: Computer,
   },
 ]
 
