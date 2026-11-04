@@ -72,7 +72,7 @@ export function AuthForm({
         {mode === "sign-in" ? "Welcome back" : "Create admin account"}
       </h1>
       {accessMessage && (
-        <p role="alert" className="mt-4 text-sm text-destructive">
+        <p role="alert" className="auth-error mt-4 rounded-lg border px-3 py-2 text-sm">
           {accessMessage}
         </p>
       )}
@@ -85,7 +85,7 @@ export function AuthForm({
         <button disabled={pending} className="rounded-lg bg-foreground px-4 py-3 font-medium text-background disabled:opacity-60">
           {pending ? "Working…" : mode === "sign-in" ? "Sign in" : "Create account"}
         </button>
-        {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
+        {error && <p role="alert" className="auth-error rounded-lg border px-3 py-2 text-sm">{error}</p>}
       </div>
       <p className="mt-5 text-sm text-muted-foreground">
         {mode === "sign-in" ? "Need to create your admin account? " : "Already have an account? "}
