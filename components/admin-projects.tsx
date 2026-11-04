@@ -1,6 +1,6 @@
 ﻿"use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { deleteProject, reorderProjects, saveProject } from "@/app/actions/projects"
 import {
   deleteContactSubmission,
@@ -26,6 +26,7 @@ import type {
   Skill,
 } from "@/lib/db/schema"
 import { notifyPortfolioContentChanged } from "@/lib/content-events"
+import { markAdminMessageRead } from "@/lib/admin-message-read-state"
 
 const emptyProject = { title: "", description: "", tech: "", link: "", cover: "", featured: false }
 const emptySkill = { name: "", category: "general" }
@@ -87,6 +88,7 @@ export function AdminProjects({
   initialEducation,
   initialCertifications,
   initialMessages,
+  selectedMessageId,
 }: {
   activeSection: string
   initialProjects: Project[]
@@ -95,6 +97,7 @@ export function AdminProjects({
   initialEducation: EducationEntry[]
   initialCertifications: Certification[]
   initialMessages: ContactSubmission[]
+  selectedMessageId?: number
 }) {
   const [projects, setProjects] = useState(initialProjects)
   const [projectForm, setProjectForm] = useState(emptyProject)
@@ -120,6 +123,16 @@ export function AdminProjects({
   const [certificateForm, setCertificateForm] = useState(emptyCertificate)
   const [certificateEditing, setCertificateEditing] = useState<number | null>(null)
   const [certificatePending, setCertificatePending] = useState(false)
+
+  useEffect(() => {
+    if (
+      activeSection === "messages" &&
+      selectedMessageId !== undefined &&
+      initialMessages.some((message) => message.id === selectedMessageId)
+    ) {
+      markAdminMessageRead(selectedMessageId)
+    }
+  }, [activeSection, initialMessages, selectedMessageId])
 
   async function submitProject(event: React.FormEvent) {
     event.preventDefault()
@@ -276,10 +289,12 @@ export function AdminProjects({
                 required
               />
               <input
+                type="url"
                 value={projectForm.link}
                 onChange={(event) => setProjectForm((current) => ({ ...current, link: event.target.value }))}
-                placeholder="Project URL"
+                placeholder="Project URL for the View project button"
                 className="rounded-lg border px-3 py-2"
+                aria-label="Project URL for the View project button"
               />
               <input
                 value={projectForm.cover}
@@ -703,10 +718,53 @@ export function AdminProjects({
 
       <section id="messages" hidden={activeSection !== "messages"} className={`${sectionClass} scroll-mt-6`}>
         <div className="mb-5">
-          <h3 className="text-xl font-semibold">Messages <span className="text-sm font-normal text-muted-foreground">({initialMessages.length})</span></h3>
-          <p className="mt-1 text-sm text-muted-foreground">Contact form submissions, newest first.</p>
+          {selectedMessageId === undefined ? (
+            <>
+              <h3 className="text-xl font-semibold">Messages <span className="text-sm font-normal text-muted-foreground">({initialMessages.length})</span></h3>
+              <p className="mt-1 text-sm text-muted-foreground">Contact form submissions, newest first.</p>
+            </>
+          ) : (
+            <a href="/admin?section=messages" className="text-sm font-medium underline underline-offset-4">
+              ← Back to all messages
+            </a>
+          )}
         </div>
-        {initialMessages.length === 0 ? (
+        {selectedMessageId !== undefined ? (
+          (() => {
+            const message = initialMessages.find((item) => item.id === selectedMessageId)
+            return message ? (
+              <article className={`${itemCardClass} bg-background`}>
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div>
+                    <h3 className="text-xl font-semibold">{message.name}</h3>
+                    <a href={`mailto:${message.email}`} className="mt-1 inline-block break-all text-sm font-medium underline underline-offset-4">
+                      {message.email}
+                    </a>
+                  </div>
+                  <time dateTime={message.createdAt.toISOString()} className="text-sm text-muted-foreground">
+                    {new Intl.DateTimeFormat(undefined, { dateStyle: "full", timeStyle: "short" }).format(message.createdAt)}
+                  </time>
+                </div>
+                <p className="mt-6 whitespace-pre-wrap break-words text-sm leading-7">{message.message}</p>
+                <button
+                  type="button"
+                  className="mt-6 text-sm text-destructive underline"
+                  onClick={async () => {
+                    await deleteContactSubmission(message.id)
+                    notifyPortfolioContentChanged()
+                    window.location.href = "/admin?section=messages"
+                  }}
+                >
+                  Delete message
+                </button>
+              </article>
+            ) : (
+              <p className="rounded-xl border border-dashed p-4 text-sm text-muted-foreground">
+                This message is no longer available. <a href="/admin?section=messages" className="underline">Return to messages</a>.
+              </p>
+            )
+          })()
+        ) : initialMessages.length === 0 ? (
           <p className="rounded-xl border border-dashed p-4 text-sm text-muted-foreground">No contact messages yet.</p>
         ) : (
           <div className="grid gap-3">
@@ -714,7 +772,13 @@ export function AdminProjects({
               <article key={message.id} className={`${itemCardClass} bg-background`}>
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
-                    <h4 className="font-semibold">{message.name}</h4>
+                    <a
+                      href={`/admin?section=messages&message=${message.id}`}
+                      onClick={() => markAdminMessageRead(message.id)}
+                      className="font-semibold underline-offset-4 hover:underline"
+                    >
+                      {message.name}
+                    </a>
                     <a href={`mailto:${message.email}`} className="mt-1 inline-block text-sm font-medium underline underline-offset-4">
                       {message.email}
                     </a>
