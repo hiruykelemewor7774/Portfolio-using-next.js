@@ -17,6 +17,9 @@
 * {
   box-sizing: border-box;
 }
+img {
+  max-width: 100%;
+}
 html {
   scroll-behavior: smooth;
 }
@@ -26,6 +29,7 @@ body {
 .site-shell {
   min-height: 100vh;
   overflow: hidden;
+  overflow-wrap: anywhere;
   font-family: Arial, Helvetica, sans-serif;
   background: var(--ink);
   color: #f2f4ed;
@@ -123,6 +127,11 @@ body {
 .site-header {
   width: min(1180px, calc(100% - 64px));
   margin-inline: auto;
+}
+.section-wrap,
+.section-grid > *,
+.project-copy {
+  min-width: 0;
 }
 .site-header,
 .hero.section-wrap {
@@ -745,11 +754,11 @@ h2 em {
   color: #59ef99;
 }
 .hero-stats strong {
-  overflow: hidden;
+  min-width: 0;
   color: #f1f5f2;
   font-size: 14px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
 }
 .light-mode .hero-stats strong {
   color: #22374b;
@@ -848,6 +857,19 @@ h2 em {
   font-size: 15px;
   line-height: 10px;
 }
+@media (max-width: 1100px) {
+  .ticker-track {
+    min-width: 0;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 12px 18px;
+    padding: 14px 18px;
+    font-size: clamp(9px, 2.4vw, 11px);
+    line-height: 1.4;
+    text-align: center;
+    animation: none;
+  }
+}
 .section-grid {
   display: grid;
   grid-template-columns: 150px 1fr;
@@ -911,6 +933,7 @@ h2 {
 }
 .about-meta {
   display: flex;
+  flex-wrap: wrap;
   gap: 72px;
   margin-top: 78px;
 }
@@ -1054,8 +1077,7 @@ h2 {
   background: var(--project-accent);
   color: #fff;
   font: 600 9px/1.2 monospace;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  white-space: normal;
 }
 .project-external {
   position: absolute;
@@ -1581,8 +1603,33 @@ h2 {
 }
 @media (max-width: 900px) {
   .main-nav {
-    gap: 15px;
-    margin-left: 20px;
+    display: none;
+    position: absolute;
+    inset: 68px 0 auto;
+    flex-direction: column;
+    gap: 18px;
+    margin-left: 0;
+    padding: 20px;
+    border-bottom: 1px solid var(--line);
+    background: var(--ink);
+  }
+  .light-mode .main-nav {
+    background: var(--paper);
+  }
+  .main-nav.open {
+    display: flex;
+  }
+  .main-nav a:first-child::after {
+    display: none;
+  }
+  .header-cta {
+    display: none;
+  }
+  .menu-toggle {
+    display: grid;
+  }
+  .orbit {
+    display: none;
   }
   .hero {
     grid-template-columns: 1fr 0.9fr;
@@ -1705,6 +1752,10 @@ h2 {
 .journal-list p {
   max-width: 620px;
 }
+.section-grid h3,
+.section-grid p {
+  overflow-wrap: anywhere;
+}
 
 @media (max-width: 760px) {
   .offline-tools {
@@ -1783,8 +1834,9 @@ h2 {
     font-size: clamp(32px, 7vw, 52px);
   }
   .hero h1 em {
-    display: inline-block;
+    display: inline;
     font-size: 0.76em;
+    overflow-wrap: anywhere;
   }
   .portrait-halo {
     position: relative;
@@ -1858,6 +1910,10 @@ h2 {
     min-height: 70px;
     padding: 10px 14px;
   }
+  .hero-stats span {
+    line-height: 1.35;
+    overflow-wrap: anywhere;
+  }
   .hero-stats > div:nth-child(3) {
     border-left: 0;
   }
@@ -1900,7 +1956,11 @@ h2 {
     min-height: 350px;
   }
   .education-card {
+    flex-wrap: wrap;
     gap: 12px;
+  }
+  .education-badge {
+    white-space: normal;
   }
   .timeline-item {
     grid-template-columns: 1fr 18px;
@@ -1930,9 +1990,6 @@ h2 {
   .footer-note {
     order: 3;
     width: 100%;
-  }
-  .ticker-track {
-    gap: 28px;
   }
   .hero-index {
     display: none;
@@ -1986,7 +2043,7 @@ h2 {
     font-size: 12px;
   }
   .hero-stats span {
-    font-size: 9px;
+    font-size: 11px;
   }
 }
 @media (prefers-reduced-motion: reduce) {
@@ -2119,19 +2176,19 @@ h2 {
     width: calc(100% - 16px);
   }
   .site-header {
-    height: 32px;
-    margin-top: 4px;
+    height: 56px;
+    margin-top: 8px;
     padding-inline: 8px;
     border-radius: 12px;
   }
   .brand {
     gap: 7px;
-    font-size: 13px;
+    font-size: 15px;
   }
   .brand-mark {
-    width: 24px;
-    height: 24px;
-    font-size: 12px;
+    width: 30px;
+    height: 30px;
+    font-size: 13px;
   }
   .header-actions {
     gap: 5px;
@@ -2142,11 +2199,11 @@ h2 {
   }
   .theme-toggle svg,
   .menu-toggle svg {
-    width: 15px;
-    height: 15px;
+    width: 18px;
+    height: 18px;
   }
   .main-nav {
-    inset: 32px -8px auto;
+    inset: 56px -8px auto;
   }
   .hero {
     position: relative;
@@ -2162,7 +2219,7 @@ h2 {
     align-items: center;
     gap: 0 4px;
     min-height: 0;
-    padding: 4px 0 12px;
+    padding: 14px 0 16px;
   }
   .hero-copy,
   .hero-aside {
@@ -2190,14 +2247,15 @@ h2 {
   .hero h1 {
     grid-area: heading;
     align-self: center;
-    margin-top: 4px;
-    font-size: clamp(23px, 9vw, 34px);
+    margin-top: 8px;
+    font-size: clamp(30px, 9vw, 40px);
     line-height: 0.96;
   }
   .hero h1 em {
-    display: inline-block;
+    display: inline;
     font-size: 0.68em;
     line-height: 1.02;
+    overflow-wrap: anywhere;
   }
   .portrait-halo {
     position: relative;
@@ -2225,14 +2283,14 @@ h2 {
   .hero-intro {
     grid-area: intro;
     max-width: none;
-    margin-top: 8px;
-    font-size: 8px;
-    line-height: 1.3;
+    margin-top: 12px;
+    font-size: 14px;
+    line-height: 1.5;
   }
   .hero-intro span {
-    margin-top: 4px;
-    font-size: 7px;
-    line-height: 1.25;
+    margin-top: 6px;
+    font-size: 12px;
+    line-height: 1.45;
   }
   .hero-terminal {
     position: relative;
@@ -2240,50 +2298,50 @@ h2 {
     right: auto;
     grid-area: terminal;
     width: 100%;
-    margin-top: 8px;
+    margin-top: 12px;
   }
   .terminal-top {
-    height: 18px;
+    height: 24px;
     padding-inline: 9px;
   }
   .terminal-top small {
-    font-size: 8px;
+    font-size: 9px;
   }
   .terminal-body {
-    padding: 6px 8px 7px;
-    font-size: 7px;
-    line-height: 1.25;
+    padding: 9px 10px;
+    font-size: 9px;
+    line-height: 1.5;
   }
   .indent {
-    padding-left: 14px;
+    padding-left: 16px;
   }
   .hero-actions {
     grid-area: actions;
     justify-content: center;
     gap: 7px;
-    margin-top: 10px;
+    margin-top: 12px;
   }
   .hero-actions .button {
     justify-content: center;
     gap: 4px;
-    padding: 10px 7px;
-    font-size: 8px;
+    padding: 11px 8px;
+    font-size: 10px;
     white-space: nowrap;
   }
   .hero-actions .button svg {
-    width: 12px;
-    height: 12px;
+    width: 13px;
+    height: 13px;
   }
   .hero-socials {
     grid-area: socials;
     flex-wrap: wrap;
     justify-content: center;
-    gap: 7px;
-    margin-top: 10px;
+    gap: 8px;
+    margin-top: 12px;
   }
   .hero-socials a {
-    width: 28px;
-    height: 28px;
+    width: 32px;
+    height: 32px;
   }
   .hero-aside {
     animation: none;
@@ -2300,11 +2358,11 @@ h2 {
     flex-direction: column;
     gap: 4px;
     width: fit-content;
-    margin: 0 auto 18px;
+    margin: 0 auto 16px;
     padding: 0;
     border: 0;
     background: transparent;
-    font-size: 9px;
+    font-size: 10px;
     writing-mode: horizontal-tb;
   }
   .scroll-cue svg {
